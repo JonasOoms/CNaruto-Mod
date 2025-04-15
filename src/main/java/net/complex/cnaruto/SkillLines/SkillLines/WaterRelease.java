@@ -12,7 +12,7 @@ public class WaterRelease extends SkillLine {
             new ResourceLocation(CNaruto.MODID, "textures/gui/waterrelease.png"), SkillLineCategories.ELEMENT);
 
     public WaterRelease(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
-        super(name, description, icon, Category);
+        super(name, description, icon, 250, Category);
 
         // Add water release jutsu here!
 

@@ -210,7 +210,6 @@ public class PlayerStatsMain extends Screen {
         while (it.hasNext())
         {
             Renderable next = it.next();
-            System.out.println(next.toString());
             next.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         }
 

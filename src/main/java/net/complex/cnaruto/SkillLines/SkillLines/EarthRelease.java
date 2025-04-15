@@ -12,6 +12,6 @@ public class EarthRelease extends SkillLine {
             new ResourceLocation(CNaruto.MODID, "textures/gui/earthrelease.png"), SkillLineCategories.ELEMENT);
 
     public EarthRelease(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
-        super(name, description, icon, Category);
+        super(name, description, icon, 250, Category);
     }
 }

@@ -261,41 +261,25 @@ public class PlayerLevelStats {
 
     public boolean PlayerHasSkillLine(RegistryObject<SkillLine> SkillLineRegistry)
     {
-        SkillLineCategories Category = SkillLineRegistry.get().GetCategory();
-
-        Boolean ContainsSkillLine = false;
-
-        ArrayList<SkillLineData> ArrayListToSearch = null;
-
-        switch (Category)
-        {
-            case ELEMENT:
-                ArrayListToSearch = ElementReleases;
-                break;
-            case KEKKEI:
-                ArrayListToSearch = KekkeiReleases;
-                break;
-            case MISC:
-                ArrayListToSearch = OtherReleases;
-        }
-
-        for (int i = 0; i < ArrayListToSearch.size(); i++)
-        {
-            if (SkillLineRegistry.getId().getPath().equals(ArrayListToSearch.get(i).GetId()))
-            {
-                ContainsSkillLine = true;
-            }
-        }
-
-        return ContainsSkillLine;
+        SkillLineData data = GetPlayerSkillLineDataObject(SkillLineRegistry);
+        return (data != null);
 
     }
 
     public int GetPlayerLevelWithSkillLine(RegistryObject<SkillLine> SkillLineRegistry)
     {
+        SkillLineData data = GetPlayerSkillLineDataObject(SkillLineRegistry);
+        if (data != null)
+        {
+            return data.GetLevel();
+        } else {
+            return -1;
+        }
+    }
+
+    public SkillLineData GetPlayerSkillLineDataObject(RegistryObject<SkillLine> SkillLineRegistry)
+    {
         SkillLineCategories Category = SkillLineRegistry.get().GetCategory();
-
-
 
         ArrayList<SkillLineData> ArrayListToSearch = null;
 
@@ -316,13 +300,14 @@ public class PlayerLevelStats {
             if (SkillLineRegistry.getId().getPath().equals(ArrayListToSearch.get(i).GetId()))
             {
                 SkillLineData data = ArrayListToSearch.get(i);
-                return data.GetLevel();
-
+                return data;
             }
         }
 
-        return -1;
+        return null;
     }
+
+
 
     public boolean AddSkillLineToPlayer(RegistryObject<SkillLine> SkillLineRegistry)
     {

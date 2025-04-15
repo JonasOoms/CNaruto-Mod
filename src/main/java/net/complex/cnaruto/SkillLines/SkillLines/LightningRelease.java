@@ -13,7 +13,7 @@ public class LightningRelease extends SkillLine {
             SkillLineCategories.ELEMENT);
 
     public LightningRelease(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
-        super(name, description, icon, Category);
+        super(name, description, icon, 250, Category);
 
         // add lightning release jutsu here
     }

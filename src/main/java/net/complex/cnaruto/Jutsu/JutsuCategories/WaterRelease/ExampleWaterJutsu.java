@@ -15,7 +15,7 @@ public class ExampleWaterJutsu extends Jutsu {
             new ResourceLocation(CNaruto.MODID, "textures/gui/waterrelease.png"), WaterRelease.INSTANCE);
 
     public ExampleWaterJutsu(String displayName, String description, ResourceLocation Icon, SkillLine SkillLine) {
-        super(displayName, description ,Icon, true  ,SkillLine);
+        super(displayName, description ,Icon, false  ,SkillLine);
         AddJutsuRequirement(new LevelJutsuUnlockRequirement(1));
         AddJutsuRequirement(new SkillLineLevelUnlockRequirement(WaterRelease.INSTANCE, 10));
     }

@@ -7,6 +7,7 @@ import net.complex.cnaruto.SkillLines.SkillLineRegister;
 import net.complex.cnaruto.command.Argument.CNarutoCommandsArguments;
 import net.complex.cnaruto.networking.ModMessages;
 import net.complex.cnaruto.registries.NarutoRegistries;
+import net.complex.cnaruto.sounds.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.food.FoodProperties;
@@ -78,6 +79,7 @@ public class CNaruto
         SkillLineRegister.Register(modEventBus);
         JutsuRegister.Register(modEventBus);
         ModItems.register(modEventBus);
+        ModSounds.register(modEventBus);
 
         CNarutoCommandsArguments.COMMAND_ARGUMENT_TYPES.register(modEventBus);
 

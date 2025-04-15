@@ -16,15 +16,18 @@ public class SkillLine {
     private final String description;
     private final ResourceLocation icon;
     private final SkillLineCategories category;
+    public final int MaxLevel;
+
 
     private Map<String, Jutsu> JutsuMap;
 
-    public SkillLine(String name, String description, ResourceLocation icon, SkillLineCategories Category)
+    public SkillLine(String name, String description, ResourceLocation icon, int maxLevel ,SkillLineCategories Category)
     {
         this.name = name;
         this.description = description;
         this.icon = icon;
         this.category = Category;
+        this.MaxLevel = maxLevel;
         this.JutsuMap = new HashMap<>();
 
     }

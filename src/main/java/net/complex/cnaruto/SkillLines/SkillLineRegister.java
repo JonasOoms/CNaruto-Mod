@@ -23,7 +23,7 @@ public class SkillLineRegister {
     public static final DeferredRegister<SkillLine> SKILL_LINE_REGISTER = DeferredRegister.create(SKILL_LINE_KEY, CNaruto.MODID);
 
 
-    public static final RegistryObject<SkillLine> EXAMPLESKILL = SKILL_LINE_REGISTER.register("exampleskill", () -> new SkillLine("Example Skill Line", "An example skill line!", new ResourceLocation(CNaruto.MODID, "textures/scrollbackground.png"), SkillLineCategories.KEKKEI));
+    //public static final RegistryObject<SkillLine> EXAMPLESKILL = SKILL_LINE_REGISTER.register("exampleskill", () -> new SkillLine("Example Skill Line", "An example skill line!", new ResourceLocation(CNaruto.MODID, "textures/scrollbackground.png"), SkillLineCategories.KEKKEI));
 
     public static final RegistryObject<SkillLine> FIRE_RELEASE = SKILL_LINE_REGISTER.register("firerelease", () -> FireRelease.INSTANCE);
     public static final RegistryObject<SkillLine> WATER_RELEASE = SKILL_LINE_REGISTER.register("waterrelease", () -> WaterRelease.INSTANCE );

@@ -12,7 +12,7 @@ public class FireRelease extends SkillLine {
             new ResourceLocation(CNaruto.MODID, "textures/gui/firerelease.png"), SkillLineCategories.ELEMENT);
 
     public FireRelease(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
-        super(name, description, icon, Category);
+        super(name, description, icon, 250, Category);
 
         // Add fire style jutsu to this!
     }

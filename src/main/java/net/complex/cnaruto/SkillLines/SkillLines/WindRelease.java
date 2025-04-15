@@ -13,7 +13,7 @@ public class WindRelease extends SkillLine {
             SkillLineCategories.ELEMENT);
 
     public WindRelease(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
-        super(name, description, icon, Category);
+        super(name, description, icon, 250, Category);
 
         // add wind style jutsu!
 

@@ -1,11 +1,14 @@
 package net.complex.cnaruto.SkillLines.SkillLineData;
 
+import net.complex.cnaruto.CNaruto;
 import net.complex.cnaruto.SkillLines.SkillLine;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
+import net.complex.cnaruto.api.CUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
@@ -17,7 +20,6 @@ public class SkillLineData implements ISkillLineData {
     private int Level;
 
     private List<String> SkillLineTags;
-
 
     public SkillLineData(RegistryObject<SkillLine> SkillLineRegistry, int level)
     {
@@ -43,6 +45,7 @@ public class SkillLineData implements ISkillLineData {
 
     public void SetLevel(int level)
     {
+        //SkillLine skillLine = CUtils.FindAndReturnFromRegistry(SkillLineRegister.SKILL_LINE_REGISTER, new ResourceLocation(CNaruto.MODID, this.SkillLineObjectId)).get();
         this.Level = level;
     }
 

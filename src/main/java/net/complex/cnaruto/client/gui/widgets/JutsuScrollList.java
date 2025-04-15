@@ -17,7 +17,7 @@ import java.util.Objects;
 
 public class JutsuScrollList extends ObjectSelectionList<JutsuScrollList.JutsuEntry> {
 
-    private final ResourceLocation JutsuScrollListBackground = new ResourceLocation(CNaruto.MODID, "textures/gui/jutsulistbackground.png");
+    public static final ResourceLocation JutsuScrollListBackground = new ResourceLocation(CNaruto.MODID, "textures/gui/jutsulistbackground.png");
     private SkillLineScreen parent;
     private final int listWidth;
 
