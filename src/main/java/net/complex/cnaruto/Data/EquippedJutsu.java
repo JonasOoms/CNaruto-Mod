@@ -20,8 +20,13 @@ import java.util.ArrayList;
 public class EquippedJutsu {
 
 
-    public JutsuInstance[] equippedJutsuList = new JutsuInstance[slots];
+    private JutsuInstance[] equippedJutsuList = new JutsuInstance[slots];
     public static final int slots = 6;
+
+    public JutsuInstance get(int slot)
+    {
+        return equippedJutsuList[slot];
+    }
 
     public Jutsu getJutsuInSlot(int slot)
     {
@@ -55,6 +60,22 @@ public class EquippedJutsu {
         }
     }
 
+    public boolean isJutsuEquipped(Jutsu jutsu)
+    {
+        boolean isJutsuEquipped = false;
+        for (JutsuInstance jutsuInstance : equippedJutsuList)
+        {
+            if (jutsuInstance != null)
+            {
+                if (jutsuInstance.jutsu.equals(jutsu))
+                {
+                    isJutsuEquipped = true;
+                }
+            }
+        }
+        return isJutsuEquipped;
+    }
+
     public void copyFrom(EquippedJutsu source)
     {
         this.equippedJutsuList = source.equippedJutsuList;
@@ -65,8 +86,19 @@ public class EquippedJutsu {
         ListTag equippedJutsuListAsTag = (ListTag) tag.get("equippedjutsu");
         for (int jutsuIdIdx = 0; jutsuIdIdx < equippedJutsuListAsTag.size(); jutsuIdIdx++)
         {
-            JutsuInstance jutsuInstance = new JutsuInstance((CompoundTag) equippedJutsuListAsTag.get(jutsuIdIdx));
-            equippedJutsuList[jutsuIdIdx] = jutsuInstance;
+            CompoundTag jutsuInstanceTag = (CompoundTag) equippedJutsuListAsTag.get(jutsuIdIdx);
+            if (!jutsuInstanceTag.getString("jutsuId").equals("null"))
+            {
+                JutsuInstance jutsuInstance = new JutsuInstance((CompoundTag) equippedJutsuListAsTag.get(jutsuIdIdx));
+                equippedJutsuList[jutsuIdIdx] = jutsuInstance;
+            } else
+            {
+                JutsuInstance jutsuInstance = null;
+                equippedJutsuList[jutsuIdIdx] = jutsuInstance;
+            }
+
+
+
         }
 
     }
@@ -81,6 +113,10 @@ public class EquippedJutsu {
             if (instance != null)
             {
                 CompoundTag JutsuInstanceTag = instance.serializeNBT();
+                equippedJutsuListAsTag.add(JutsuInstanceTag);
+            } else
+            {
+                CompoundTag JutsuInstanceTag = JutsuInstance.NullJutsuInstance();
                 equippedJutsuListAsTag.add(JutsuInstanceTag);
             }
         }

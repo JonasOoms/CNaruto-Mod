@@ -5,11 +5,16 @@ import net.complex.cnaruto.CNaruto;
 import net.complex.cnaruto.Data.PlayerLevelStats;
 import net.complex.cnaruto.Data.PlayerLevelStatsProvider;
 import net.complex.cnaruto.Jutsu.Jutsu;
+import net.complex.cnaruto.Jutsu.JutsuResourceRequirements.IJutsuResourceRequirement;
 import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.IJutsuRequirement;
 import net.complex.cnaruto.SkillLines.SkillLine;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
+import net.complex.cnaruto.api.CRenderUtils;
 import net.complex.cnaruto.api.CUtils;
+import net.complex.cnaruto.client.gui.widgets.JutsuBarWidget;
 import net.complex.cnaruto.client.gui.widgets.JutsuScrollList;
+import net.complex.cnaruto.client.gui.widgets.draggableWidget.DraggableWidget;
+import net.complex.cnaruto.client.gui.widgets.draggableWidget.DropZoneWidget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -22,6 +27,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +40,8 @@ public class SkillLineScreen extends Screen {
     private List<Jutsu> jutsuList;
     private JutsuScrollList jutsuScrollList;
     private JutsuScrollList.JutsuEntry selected = null;
+    private DraggableWidget draggableWidget;
+    private JutsuBarWidget jutsuBarWidget;
     private int listWidth;
 
     int mouseX;
@@ -51,14 +59,6 @@ public class SkillLineScreen extends Screen {
     }
 
     public void init() {
-//        for (Iterator<Jutsu> var1 = this.jutsuList.iterator(); var1.hasNext(); this.listWidth = Math.max(this.listWidth, Minecraft.getInstance().font.width(((Jutsu) var1.next()).GetDisplayName()) + 16 + 8))
-//        {
-//            if (var1.hasNext())
-//            {
-//                Jutsu Jutsu = (Jutsu) var1.next();
-//                this.listWidth = Math.max(this.listWidth, Minecraft.getInstance().font.width(Jutsu.GetDisplayName()) + 16 + 8);
-//            }
-//        }
 
         jutsuList.forEach((jutsu) -> {
             this.listWidth = Math.max(this.listWidth, Minecraft.getInstance().font.width(jutsu.GetDisplayName()) + 16 + 8);
@@ -70,6 +70,16 @@ public class SkillLineScreen extends Screen {
 
         //this.jutsuScrollList.setLeftPos(6);
         this.addRenderableWidget(this.jutsuScrollList);
+
+        jutsuBarWidget = new JutsuBarWidget(this.width/2 - 160/2, this.height - 30, 160, 30);
+        this.addRenderableWidget(this.jutsuBarWidget);
+        draggableWidget = new DraggableWidget(100, 100, 16, 16, List.of(jutsuBarWidget.dropZones));
+        draggableWidget.active = false;
+        this.addRenderableWidget(this.draggableWidget);
+
+
+
+
         this.updateInfo();
     }
 
@@ -88,7 +98,10 @@ public class SkillLineScreen extends Screen {
         this.mouseX = pMouseX;
         this.mouseY = pMouseY;
 
+        this.renderBackground(pGuiGraphics);
+
         this.jutsuScrollList.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+        this.jutsuBarWidget.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         drawSkillLineMastery(pGuiGraphics, this.jutsuScrollList.getLeft(), this.jutsuScrollList.getTop()-30, this.jutsuScrollList.getWidth(), 30, WoodBorder , JutsuScrollList.JutsuScrollListBackground);
 
         if (selected != null)
@@ -98,15 +111,96 @@ public class SkillLineScreen extends Screen {
             String jutsuDisplayName = selected.GetJutsu().GetDisplayName();
             int displayNameWidth = font.width(jutsuDisplayName);
             RenderSystem.enableBlend();
-            pGuiGraphics.blit(JutsuInformationBackground,this.listWidth + 30, 32,0,0, 250,200, 250, 200 );
+
+            // jutsu information scroll background
+
+            int jutsuInformationScrollX, jutsuInformationScrollY;
+            int jutsuInformationScrollWidth, jutsuInformationScrollHeight;
+
+            jutsuInformationScrollWidth = (int) (250);
+            jutsuInformationScrollHeight = (int) (200);
+
+
+            if (minecraft.options.guiScale().get() == 4)
+            {
+                jutsuInformationScrollX = (this.listWidth + 30);
+                jutsuInformationScrollY =  32;
+            } else
+            {
+
+                int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+                int screenHeight = minecraft.getWindow().getGuiScaledHeight();
+
+                int listSpacing = 30;
+                int listWidth = this.listWidth;
+
+                int jutsuNaturalWidth = 250;
+                int jutsuNaturalHeight = 200;
+
+
+                int maxAllowedJutsuWidth = screenWidth - listWidth - listSpacing;
+                int maxAllowedJutsuHeight = screenHeight - 40; // Optional padding
+
+
+                float widthScale = (float) maxAllowedJutsuWidth / jutsuNaturalWidth;
+                float heightScale = (float) maxAllowedJutsuHeight / jutsuNaturalHeight;
+
+
+                float scale = Math.min(1.0f, Math.min(widthScale, heightScale));
+
+
+                jutsuInformationScrollWidth = (int) (jutsuNaturalWidth * scale);
+                jutsuInformationScrollHeight = (int) (jutsuNaturalHeight * scale);
+
+
+                    // Center the whole layout
+                    int totalWidth = listWidth + listSpacing + jutsuInformationScrollWidth;
+                    jutsuInformationScrollX = (screenWidth - totalWidth) / 2 + listWidth + listSpacing;
+                    jutsuInformationScrollY = (screenHeight - jutsuInformationScrollHeight) / 2;
+
+            }
+
+            pGuiGraphics.blit(JutsuInformationBackground,jutsuInformationScrollX, jutsuInformationScrollY,0,0, jutsuInformationScrollWidth,jutsuInformationScrollHeight, jutsuInformationScrollWidth, jutsuInformationScrollHeight );
+
+
+
             RenderSystem.disableBlend();
-            pGuiGraphics.drawString(font, jutsuDisplayName, (this.listWidth + 30 + 250)/2 - displayNameWidth/2 + 100, 64, Color.GRAY.hashCode());
-            drawWrappedText(pGuiGraphics, selected.GetJutsu().GetDescription(), (this.listWidth + 30 + 40), 82, 200, 100);
-            pGuiGraphics.drawString(font, "Requirements to equip:", (this.listWidth + 30 + 40), 110, Color.DARK_GRAY.hashCode());
-            drawRequirements(selected.GetJutsu(), pGuiGraphics, (this.listWidth + 30 + 40) , 120);
+            pGuiGraphics.drawString(font, jutsuDisplayName, jutsuInformationScrollX + 40, jutsuInformationScrollY + 32, Color.GRAY.hashCode());
+            drawWrappedText(pGuiGraphics, selected.GetJutsu().GetDescription(), jutsuInformationScrollX + 40, jutsuInformationScrollY + 50, 200, 100);
+            pGuiGraphics.drawString(font, "Requirements to equip:", (jutsuInformationScrollX) + 40, jutsuInformationScrollY + 78, Color.DARK_GRAY.hashCode());
+            drawRequirements(selected.GetJutsu(), pGuiGraphics, jutsuInformationScrollX + 40 , jutsuInformationScrollY + 88);
 
 
+
+
+            if (this.selected.GetJutsu().UnlockRequirements(minecraft.player))
+            {
+                this.draggableWidget.active = true;
+                this.draggableWidget.SetOrigin((jutsuInformationScrollX + 130), jutsuInformationScrollY + 150);
+                this.draggableWidget.SetIcon(this.selected.GetJutsu().GetIcon());
+                this.draggableWidget.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
+
+                if (!this.draggableWidget.dragging && this.draggableWidget.isHovered())
+                {
+                    pGuiGraphics.renderComponentHoverEffect(this.font, null, pMouseX,pMouseY);
+
+                    List<Component> jutsuCastRequirementsComponent = new ArrayList<>(List.of());
+                    jutsuCastRequirementsComponent.add(Component.literal(this.selected.GetJutsu().GetDisplayName()).withStyle(ChatFormatting.BOLD).withStyle(ChatFormatting.BLUE));
+                    jutsuCastRequirementsComponent.add(Component.literal("Hold and drag to jutsu bar to equip!"));
+                    for (IJutsuResourceRequirement resourceRequirement: this.selected.GetJutsu().GetJutsuResourceRequirements())
+                    {
+                        jutsuCastRequirementsComponent.add(resourceRequirement.GetDisplay(this.getMinecraft().player));
+                    }
+                    pGuiGraphics.renderComponentTooltip(this.font, jutsuCastRequirementsComponent ,pMouseX, pMouseY);
+                }
+
+            } else
+            {
+                this.draggableWidget.active = false;
+            }
         }
+
+
 
     }
 
@@ -115,7 +209,7 @@ public class SkillLineScreen extends Screen {
 
         int thickness = 2;
 
-        CUtils.tileTexture(guiGraphics, borderTexture, x, y, width, height, 16);
+        CRenderUtils.tileTexture(guiGraphics, borderTexture, x, y, width, height, 16);
         // Inner box (fill)
 
 
@@ -164,7 +258,6 @@ public class SkillLineScreen extends Screen {
 
     private void drawWrappedText(GuiGraphics guiGraphics, String text, int x, int y, int width, int height)
     {
-        System.out.println(text);
         Font font = Minecraft.getInstance().font;
         Component component = Component.literal(text);
         List<FormattedCharSequence> lines = font.split(component, width);
@@ -181,9 +274,9 @@ public class SkillLineScreen extends Screen {
     {
         int lineHeight = font.lineHeight;
 
-        for (int i = 0; i < jutsu.jutsuRequirements.size(); i++)
+        for (int i = 0; i < jutsu.GetJutsuRequirements().size(); i++)
         {
-            Component reqText = jutsu.jutsuRequirements.get(i).GetDisplay(getMinecraft().player);
+            Component reqText = jutsu.GetJutsuRequirements().get(i).GetDisplay(getMinecraft().player);
             guiGraphics.drawString(font, reqText , x, y + i * lineHeight, Color.WHITE.hashCode());
             int textY = y + i * lineHeight;
             int lineWidth = font.width(reqText.getString());
@@ -199,16 +292,17 @@ public class SkillLineScreen extends Screen {
     }
 
     @Override
-    public void renderBackground(GuiGraphics pGuiGraphics) {
-        //super.renderBackground(pGuiGraphics);
-    }
-
-    @Override
     public void onClose() {
         this.minecraft.popGuiLayer();
         Minecraft.getInstance().setScreen(new PlayerStatsMain());
     }
 
+    @Override
+    public boolean mouseReleased(double pMouseX, double pMouseY, int pButton)
+    {
+        this.draggableWidget.mouseReleased(pMouseX, pMouseY, pButton);
+        return super.mouseReleased(pMouseX, pMouseY, pButton);
+    }
 
     public <T extends ObjectSelectionList.Entry<T>> void buildJutsuList(Consumer<T> jutsuListViewConsumer, Function<Jutsu, T> newEntry)
     {
@@ -237,7 +331,11 @@ public class SkillLineScreen extends Screen {
 
     public void updateInfo()
     {
-
+        if (this.selected != null)
+        {
+            this.jutsuBarWidget.selectedJutsu = this.selected.GetJutsu();
+            this.jutsuBarWidget.Reload();
+        }
     }
 
 }

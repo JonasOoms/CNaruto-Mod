@@ -1,10 +1,10 @@
 package net.complex.cnaruto.networking;
 
 import net.complex.cnaruto.CNaruto;
-import net.complex.cnaruto.networking.packet.c2s.EquippedJutsuSyncWithServerC2SPacket;
-import net.complex.cnaruto.networking.packet.c2s.EquippedJutsuSyncWithServerRequestC2S;
-import net.complex.cnaruto.networking.packet.c2s.PlayerLevelStatsSyncRequestC2SPacket;
-import net.complex.cnaruto.networking.packet.c2s.PlayerLevelStatsSyncWithServerC2SPacket;
+import net.complex.cnaruto.networking.packet.c2s.*;
+import net.complex.cnaruto.networking.packet.c2s.JutsuSystem.HandSignSoundRequestC2S;
+import net.complex.cnaruto.networking.packet.c2s.JutsuSystem.JutsuSystemCastRequestC2S;
+import net.complex.cnaruto.networking.packet.s2c.ChakraManagerSyncWithClientS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.EquippedJutsuSyncWithClientS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.PlayerLevelStatsSyncS2CPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -64,6 +64,35 @@ public class ModMessages {
                 .consumerMainThread(EquippedJutsuSyncWithClientS2CPacket::handle)
                 .add();
 
+        net.messageBuilder(ChakraManagerSyncWithServerC2SPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(ChakraManagerSyncWithServerC2SPacket::new)
+                .encoder(ChakraManagerSyncWithServerC2SPacket::toBytes)
+                .consumerMainThread(ChakraManagerSyncWithServerC2SPacket::handle)
+                .add();
+
+        net.messageBuilder(ChakraManagerSyncWithClientS2CPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(ChakraManagerSyncWithClientS2CPacket::new)
+                .encoder(ChakraManagerSyncWithClientS2CPacket::toBytes)
+                .consumerMainThread(ChakraManagerSyncWithClientS2CPacket::handle)
+                .add();
+
+        net.messageBuilder(ChakraManagerSyncWithServerRequestC2S.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(ChakraManagerSyncWithServerRequestC2S::new)
+                .encoder(ChakraManagerSyncWithServerRequestC2S::toBytes)
+                .consumerMainThread(ChakraManagerSyncWithServerRequestC2S::handle)
+                .add();
+
+        net.messageBuilder(JutsuSystemCastRequestC2S.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(JutsuSystemCastRequestC2S::new)
+                .encoder(JutsuSystemCastRequestC2S::toBytes)
+                .consumerMainThread(JutsuSystemCastRequestC2S::handle)
+                .add();
+
+        net.messageBuilder(HandSignSoundRequestC2S.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(HandSignSoundRequestC2S::new)
+                .encoder(HandSignSoundRequestC2S::toBytes)
+                .consumerMainThread(HandSignSoundRequestC2S::handle)
+                .add();
 
     }
 

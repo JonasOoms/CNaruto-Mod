@@ -6,9 +6,12 @@ import net.complex.cnaruto.SkillLines.SkillLineCategories;
 import net.complex.cnaruto.SkillLines.SkillLineData.SkillLineData;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
 import net.complex.cnaruto.api.CUtils;
+import net.complex.cnaruto.events.eventtypes.LevelUpEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 import net.minecraftforge.registries.RegistryObject;
 import org.stringtemplate.v4.misc.Misc;
@@ -25,6 +28,20 @@ import java.util.List;
 @AutoRegisterCapability
 public class PlayerLevelStats {
 
+    Player belongingPlayer;
+
+    void SetPlayer(Player player)
+    {
+        this.belongingPlayer = player;
+    }
+
+    Player GetPlayer()
+    {
+        return this.belongingPlayer;
+    }
+
+
+
     public static int MAX_STAT_LEVEL = 100;
 
     private int level = 1;
@@ -39,6 +56,8 @@ public class PlayerLevelStats {
             if (this.xp >= this.MaxXP)
             {
                 level++;
+
+                MinecraftForge.EVENT_BUS.post(new LevelUpEvent(belongingPlayer, this.level));
 
                 int newPoints = 1 + ((int) this.level/100);
                 AddPoints(newPoints);
@@ -109,6 +128,8 @@ public class PlayerLevelStats {
         this.points += points;
     }
 
+
+
     public boolean RemovePointsIfEnough(int points)
     {
         if (this.points - points >= 0)
@@ -154,6 +175,10 @@ public class PlayerLevelStats {
         this.Agility = val;
     }
 
+    public double getAgilitySpeedModifier()
+    {
+        return ((this.GetAgility()*(1.20/500.0)));
+    }
 
     public int GetNinjutsu()
     {
@@ -174,6 +199,11 @@ public class PlayerLevelStats {
     public int GetTaijutsu()
     {
         return this.Taijutsu;
+    }
+
+    public double GetAddedDamageTaijutsu()
+    {
+        return (this.GetTaijutsu() * (17.f/500.f));
     }
 
     public void SetTaijutsu(int Taijutsu)
@@ -371,6 +401,13 @@ public class PlayerLevelStats {
 
     public void copyFrom(PlayerLevelStats source)
     {
+        this.belongingPlayer = source.belongingPlayer;
+        this.level = source.level;
+        this.xp = source.xp;
+        this.points = source.points;
+
+
+
         this.Spirit = source.Spirit;
         this.Dexterity = source.Dexterity;
         this.Agility = source.Agility;

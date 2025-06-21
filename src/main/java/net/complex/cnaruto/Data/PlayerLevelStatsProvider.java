@@ -28,13 +28,22 @@ public class PlayerLevelStatsProvider implements ICapabilityProvider, INBTSerial
     private PlayerLevelStats PlayerLevelStats = null;
     private final LazyOptional<PlayerLevelStats> optional = LazyOptional.of(this::CreatePlayerLevelStats);
 
+    Player player;
+
+    public PlayerLevelStatsProvider(Player player)
+    {
+        this.player = player;
+    }
+
     private PlayerLevelStats CreatePlayerLevelStats()
     {
         if (this.PlayerLevelStats == null)
         {
             this.PlayerLevelStats = new PlayerLevelStats();
+            if (this.player != null) {
+                this.PlayerLevelStats.SetPlayer(this.player);
+            }
         }
-
         return this.PlayerLevelStats;
     }
 
@@ -71,11 +80,11 @@ public class PlayerLevelStatsProvider implements ICapabilityProvider, INBTSerial
     @SubscribeEvent
     public static void onAttachCapabilitiesPlayer(AttachCapabilitiesEvent<Entity> event)
     {
-        if (event.getObject() instanceof Player)
+        if (event.getObject() instanceof Player player)
         {
             if (!event.getObject().getCapability(PlayerLevelStatsProvider.PLAYER_LEVELSTATS).isPresent())
             {
-                event.addCapability(new ResourceLocation(CNaruto.MODID, "playerlevelstats"), new PlayerLevelStatsProvider());
+                event.addCapability(new ResourceLocation(CNaruto.MODID, "playerlevelstats"), new PlayerLevelStatsProvider(player));
             }
         }
     }

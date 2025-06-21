@@ -12,6 +12,7 @@ public class CNarutoCommands {
     public static void onRegisterCommands(RegisterCommandsEvent event)
     {
         SkillLineCommand.register(event.getDispatcher());
+        PointCommand.register(event.getDispatcher());
     }
 
 }

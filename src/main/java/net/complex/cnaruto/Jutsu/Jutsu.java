@@ -1,5 +1,9 @@
 package net.complex.cnaruto.Jutsu;
 
+import com.google.common.collect.ImmutableList;
+import net.complex.cnaruto.Jutsu.JutsuResourceRequirements.IJutsuResourceRequirement;
+import net.complex.cnaruto.Jutsu.JutsuTask.JutsuCastData;
+import net.complex.cnaruto.Jutsu.JutsuTask.TaskResult;
 import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.IJutsuRequirement;
 import net.complex.cnaruto.SkillLines.SkillLine;
 import net.minecraft.resources.ResourceLocation;
@@ -7,71 +11,95 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.function.Supplier;
 
-public class Jutsu {
+/// TODO: rework with a builder with JutsuProperties
+public abstract class Jutsu {
 
-    boolean isRegistered = false;
-
-    private final String displayName;
-    private final String description;
-    private final ResourceLocation icon;
-    private final Boolean hiddenIfNotUnlocked;
-    private final SkillLine BelongsToSkillLine;
-
-    public ArrayList<IJutsuRequirement> jutsuRequirements = new ArrayList<>();
-    protected int resourceCost = 1;
-    protected int cooldown = 20; // is in milliseconds
-
-    public Jutsu(String displayName, String description ,ResourceLocation Icon, boolean hiddenIfNotUnlocked ,SkillLine SkillLine )
+    public class JutsuTask
     {
-        this.displayName = displayName;
-        this.description = description;
-        this.icon = Icon;
-        this.hiddenIfNotUnlocked = hiddenIfNotUnlocked;
-        this.BelongsToSkillLine = SkillLine;
+
+        private final JutsuCastData data;
+
+        public JutsuTask(JutsuCastData data) {
+            this.data = data;
+        }
+
+        public void OnSchedule() {};
+        public TaskResult Tick() { return TaskResult.COMPLETED;}; // TODO: cascade event down
+        public void UnSchedule() {};
+
+        public JutsuCastData getData() {return data;}
+
     }
 
-    public boolean Use(Player player) {
+
+    boolean isRegistered = false;
+   private final JutsuProperties jutsuProperties;
+
+    public Jutsu(Supplier<JutsuProperties> props)
+    {
+        jutsuProperties = props.get();
+    }
+
+    public final boolean Cast(Player player) {
         if (CastRequirements(player))
         {
-
+            Use(player);
+            return true;
         }
         return false;
     }
 
-    public boolean GetHiddenIfNotUnlocked()
-    {
-        return hiddenIfNotUnlocked;
+    protected abstract void Use(Player player);
+
+    public final JutsuTask CreateTask(JutsuCastData data) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        return createTask(data);
     }
 
-    public String GetDisplayName()
+    public abstract JutsuTask createTask(JutsuCastData data);
+
+    public final boolean GetHiddenIfNotUnlocked()
     {
-        return this.displayName;
+        return jutsuProperties.isHiddenIfNotUnlocked();
     }
 
-    public String GetDescription()
+    public final String GetDisplayName()
     {
-        return this.description;
+        return jutsuProperties.getDisplayName();
     }
 
-    public void AddJutsuRequirement(IJutsuRequirement requirement)
+    public final String GetDescription()
     {
-        jutsuRequirements.add(requirement);
+        return jutsuProperties.getDescription();
     }
 
-    public ResourceLocation GetIcon()
+    public final int GetHandSignRequirement() {return jutsuProperties.getRequiredHandsigns();}
+
+    public float GetCooldown() {return jutsuProperties.getCooldown();}
+
+    public final ResourceLocation GetIcon()
     {
-        return this.icon;
+        return jutsuProperties.getIcon();
     }
 
+    public ImmutableList<IJutsuRequirement> GetJutsuRequirements() {
+        return ImmutableList.copyOf(this.jutsuProperties.getJutsuRequirements());
+    }
+
+    public ImmutableList<IJutsuResourceRequirement> GetJutsuResourceRequirements() {
+        return ImmutableList.copyOf(this.jutsuProperties.getJutsuResourceRequirements());
+    }
     // Check if a player has enough to unlock this jutsu in the skill line menu
-    public boolean UnlockRequirements(Player player)
+    public final boolean UnlockRequirements(Player player)
     {
         boolean unlocked = true;
-        for (int i = 0; i < this.jutsuRequirements.size(); i++)
+        for (int i = 0; i < jutsuProperties.getJutsuRequirements().size(); i++)
         {
-            IJutsuRequirement requirement = this.jutsuRequirements.get(i);
+            IJutsuRequirement requirement = jutsuProperties.getJutsuRequirements().get(i);
             if (!requirement.CanUnlock(player))
             {
                 unlocked = false;
@@ -80,18 +108,25 @@ public class Jutsu {
         return unlocked;
     }
 
-    // Check if player has enough to cast! Personal implementation
-    public boolean CastRequirements(Player player)
+    public final boolean CastRequirements(Player player)
     {
-
-        return false;
+        boolean unlocked = true;
+        for (int i = 0; i < this.jutsuProperties.getJutsuResourceRequirements().size(); i++)
+        {
+            IJutsuResourceRequirement requirement = this.jutsuProperties.getJutsuResourceRequirements().get(i);
+            if (!requirement.CanUse(player))
+            {
+                unlocked = false;
+            }
+        }
+        return unlocked;
     }
 
-    public RegistryObject<Jutsu> Register(String id, DeferredRegister<Jutsu> JutsuRegister)
+    public final RegistryObject<Jutsu> Register(String id, DeferredRegister<Jutsu> JutsuRegister)
     {
         if (!isRegistered)
         {
-            BelongsToSkillLine.AddJutsu(id, this);
+            this.jutsuProperties.getBelongsToSkillLine().AddJutsu(id, this);
             RegistryObject<Jutsu> RegisteredJutsu = JutsuRegister.register(id, () -> this);
             this.isRegistered = true;
             return RegisteredJutsu;

@@ -33,14 +33,7 @@ public class EquippedJutsuSyncWithClientS2CPacket
     {
         NetworkEvent.Context ctx = Supplier.get();
         ctx.enqueueWork(() -> {
-            Player player = Minecraft.getInstance().player;
-
-            if (player == null) return;
-
-            EquippedJutsu equippedJutsu = EquippedJutsuProvider.get(player);
-
-            equippedJutsu.deserializeNBT(nbt);
-
+            ClientSideEquippedJutsuSyncWithClient.handle(this.nbt);
         });
         return false;
     }

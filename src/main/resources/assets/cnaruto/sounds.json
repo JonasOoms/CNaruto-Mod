@@ -7,5 +7,19 @@
         "stream": true
       }
     ]
+  },
+  "jutsu_hand_sign" : {
+    "sounds": [
+      {
+        "name": "cnaruto:hand_sign"
+      }
+    ]
+  },
+  "jutsu_activation" : {
+    "sounds": [
+      {
+        "name": "cnaruto:jutsu_activation"
+      }
+    ]
   }
 }

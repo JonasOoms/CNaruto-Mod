@@ -1,7 +1,6 @@
 package net.complex.cnaruto.events.precise;
 
 import net.complex.cnaruto.CNaruto;
-import net.complex.cnaruto.Data.PlayerLevelStats;
 import net.complex.cnaruto.Data.PlayerLevelStatsProvider;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
 import net.complex.cnaruto.networking.ModMessages;
@@ -9,8 +8,8 @@ import net.complex.cnaruto.networking.packet.s2c.PlayerLevelStatsSyncS2CPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.api.distmarker.Dist;
+
+
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

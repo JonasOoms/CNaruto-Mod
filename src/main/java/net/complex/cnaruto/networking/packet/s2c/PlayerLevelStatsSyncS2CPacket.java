@@ -6,8 +6,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.event.level.NoteBlockEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
@@ -33,18 +35,10 @@ public class PlayerLevelStatsSyncS2CPacket {
 
     public boolean handle(Supplier<NetworkEvent.Context> Supplier)
     {
-        NetworkEvent.Context context = Supplier.get();
-        context.enqueueWork(() -> {
-            Player player = Minecraft.getInstance().player;
+        NetworkEvent.Context ctx = Supplier.get();
+        ctx.enqueueWork(() -> {
 
-            if (player == null) return;
-
-            PlayerLevelStats cap = PlayerLevelStatsProvider.get(player);
-
-
-
-            cap.loadDataNBT(nbt);
-
+            ClientSidePlayerLevelStatsSyncS2CPacket.handle(nbt);
 
 
         });

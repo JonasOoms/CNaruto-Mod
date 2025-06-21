@@ -11,12 +11,12 @@ public class JutsuInstance
     public final Jutsu jutsu;
     private final String jutsuId;
 
-    private long lastUsedTime;
+    private long lastUsedTime = 0;
 
 
     public boolean HasCooldown()
     {
-        return (System.currentTimeMillis() - lastUsedTime) > jutsu.cooldown;
+        return (System.currentTimeMillis() - lastUsedTime) < jutsu.GetCooldown();
     }
 
     public JutsuInstance(RegistryObject<Jutsu> jutsu) {
@@ -32,11 +32,20 @@ public class JutsuInstance
         this.jutsu = CUtils.FindAndReturnFromRegistry(JutsuRegister.JUTSU_REGISTER, new ResourceLocation(CNaruto.MODID, this.jutsuId)).get();
     }
 
+    public static CompoundTag NullJutsuInstance() {
+        {
+            CompoundTag nullTag  = new CompoundTag();
+            nullTag.putString("jutsuId", "null");
+            nullTag.putLong("lastUsedTime", 0);
+            return nullTag;
+        }
+    }
+
     public void Cast()
     {
         if (!HasCooldown())
         {
-
+            lastUsedTime = System.currentTimeMillis();
         }
     }
 

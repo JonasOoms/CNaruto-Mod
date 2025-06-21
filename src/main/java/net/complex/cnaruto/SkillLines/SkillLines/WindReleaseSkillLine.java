@@ -5,14 +5,14 @@ import net.complex.cnaruto.SkillLines.SkillLine;
 import net.complex.cnaruto.SkillLines.SkillLineCategories;
 import net.minecraft.resources.ResourceLocation;
 
-public class WindRelease extends SkillLine {
+public class WindReleaseSkillLine extends SkillLine {
 
-    public static WindRelease INSTANCE = new WindRelease("Wind Release",
+    public static WindReleaseSkillLine INSTANCE = new WindReleaseSkillLine("Wind Release",
             "A balanced chakra nature, used by the ninja of Sunagakure",
             new ResourceLocation(CNaruto.MODID, "textures/gui/windrelease.png"),
             SkillLineCategories.ELEMENT);
 
-    public WindRelease(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
+    public WindReleaseSkillLine(String name, String description, ResourceLocation icon, SkillLineCategories Category) {
         super(name, description, icon, 250, Category);
 
         // add wind style jutsu!

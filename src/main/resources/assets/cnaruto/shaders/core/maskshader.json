@@ -1,0 +1,14 @@
+{
+  "blend": {
+    "func": "add",
+    "srcrgb": "src_alpha",
+    "dstrgb": "one_minus_src_alpha"
+  },
+  "vertex": "cnaruto:maskshader",
+  "fragment": "maskshader",
+  "samplers": [
+    {"name": "Sampler0"},
+    {"name": "Sampler1"}
+  ],
+  "attributes": ["Position", "UV0"]
+}

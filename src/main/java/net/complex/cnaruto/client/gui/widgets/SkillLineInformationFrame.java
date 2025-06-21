@@ -124,5 +124,13 @@ public class SkillLineInformationFrame extends Button {
         if (this.isHovered()) pGuiGraphics.renderComponentTooltip(Minecraft.getInstance().font, ToolTipLines, i, i1);
 
     }
+    @Override
+    public void onPress()
+    {
+        if (this.isHovered())
+        {
+            super.onPress();
+        }
+    }
 
 }

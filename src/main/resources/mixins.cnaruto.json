@@ -9,5 +9,8 @@
   "client": [
     "MenuMusicMixin",
     "SplashTextMixin"
+  ],
+  "mixins": [
+    "WaterWalkMixin"
   ]
 }
