@@ -46,7 +46,7 @@ public class JutsuSchedulerSubSystem extends Subsystem
                     if (instance.jutsu.CastRequirements(player))
                     {
 
-                        player.level().playLocalSound(player.getX(), player.getY(), player.getZ(), ModSounds.JUTSU_ACTIVATION.get(), SoundSource.PLAYERS, 1.f, 1.f, false);
+                        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.JUTSU_ACTIVATION.get(), SoundSource.PLAYERS, 1.f, 1.f);
 
                         // Create the task to be scheduled after resource transaction
                         JutsuCastData data = new JutsuCastData(player, player.position());

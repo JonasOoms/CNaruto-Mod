@@ -13,6 +13,7 @@ import net.complex.cnaruto.Jutsu.Jutsu;
 import net.complex.cnaruto.Jutsu.JutsuInstance;
 import net.complex.cnaruto.api.CRenderUtils;
 import net.complex.cnaruto.client.keybinds.Keybindings;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.CustomArmRenderer;
 import net.complex.cnaruto.networking.ModMessages;
 import net.complex.cnaruto.networking.packet.c2s.ChakraManagerSyncWithServerRequestC2S;
 import net.complex.cnaruto.networking.packet.c2s.EquippedJutsuSyncWithServerRequestC2S;
@@ -22,9 +23,7 @@ import net.complex.cnaruto.sounds.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -222,6 +221,7 @@ public class JutsuBarSystem {
                             if (handsignTimer >= timeBetweenHandsigns) {
                                 handsignTimer -= timeBetweenHandsigns;
                                 handsignCharge += 1;
+                                Minecraft.getInstance().player.playSound(ModSounds.JUTSU_HAND_SIGN.get(), 1.0f, 1.0f);
                                 ModMessages.SendToServer(new HandSignSoundRequestC2S());
                             }
                         }
@@ -336,99 +336,199 @@ public class JutsuBarSystem {
 
                 //stack.translate(0, 0f, -0.1f);
 
-                    stack.pushPose();
-                    renderPlayerArm(stack, buffer,  e.getPackedLight(),0,0, HumanoidArm.LEFT);
-                    stack.popPose();
-                    stack.pushPose();
-                    renderPlayerArm(stack,buffer,  e.getPackedLight(),0,0, HumanoidArm.RIGHT);
-                    stack.popPose();
+                RenderHandSigns(stack, buffer, e.getPackedLight(), HumanoidArm.LEFT);
+                RenderHandSigns(stack, buffer, e.getPackedLight(), HumanoidArm.RIGHT);
 
 
             }
         }
     }
 
-    private static void transformHandSigns(PoseStack stack, HumanoidArm arm)
+    private static void RenderHandSigns(PoseStack poseStack, MultiBufferSource buffer, int packedLight , HumanoidArm arm)
     {
         if (isCharging)
         {
+            CustomArmRenderer.ArmPose armPose = CustomArmRenderer.VANILLA_FIRST_PERSON;
             switch (handsignCharge)
             {
                 // Tiger seal
                 case 0: {
-                    if (arm == HumanoidArm.RIGHT)
-                    {
-                        stack.mulPose(Axis.XP.rotationDegrees(-60));
-                        stack.mulPose(Axis.YP.rotationDegrees(50)); // up by
-                        stack.mulPose(Axis.ZP.rotationDegrees(20));
-                        stack.translate(0.4,0.15,0);
-                    } else
-                    {
-                        stack.mulPose(Axis.XP.rotationDegrees(-60));
-                        stack.mulPose(Axis.YP.rotationDegrees(-50)); // up by
-                        stack.mulPose(Axis.ZP.rotationDegrees(-20));
-                        stack.translate(-0.4,0.15,0);
-                    }
+
+                        armPose = (stack, equip, swing, sign) -> {
+
+
+                            stack.translate(
+                                    sign * (0 + 0.64000005F),
+                                    (0 - 0.6F + equip * -0.6F),
+                                    (0 - 0.71999997F)
+                            );
+
+                            stack.translate(-0.57*sign,-0.5f,-0.3f);
+
+                            stack.mulPose(Axis.YP.rotationDegrees(180*sign));
+
+
+                            stack.mulPose(Axis.ZP.rotationDegrees(-30*sign));
+
+                        };
+
+
                     break;
                 }
                 // horse seal
                 case 1: {
-                    if (arm == HumanoidArm.RIGHT)
+                    armPose = (stack, equip, swing, sign) -> {
+
+
+                        stack.translate(
+                                sign * (0 + 0.64000005F),
+                                (0 - 0.6F + equip * -0.6F),
+                                (0 - 0.71999997F)
+                        );
+
+                        stack.translate(-0.04*sign,-0.3f,0f);
+
+                        stack.mulPose(Axis.YP.rotationDegrees(270*sign));
+
+                        stack.mulPose(Axis.XP.rotationDegrees(50));
+
+                    };
+                    break;
+                }
+                // rat seal
+                case 2: {
+
+                    if (arm == HumanoidArm.LEFT)
                     {
-
-                        stack.mulPose(Axis.XP.rotationDegrees(-45));
-                        stack.mulPose(Axis.YP.rotationDegrees(50)); // up by
-                        stack.mulPose(Axis.ZP.rotationDegrees(20));
-                        stack.translate(-0.4,0.15,0);
-                        stack.mulPose(Axis.YP.rotationDegrees(-120));
-                        stack.mulPose(Axis.ZP.rotationDegrees(-20));
+                        armPose = (stack, equip, swing, sign) -> {
 
 
+                            stack.translate(
+                                    sign * (0 + 0.64000005F),
+                                    (0 - 0.6F + equip * -0.6F),
+                                    (0 - 0.71999997F)
+                            );
+
+                            stack.translate(-0.7*sign,-0.55f,-0.4f);
+
+                            stack.mulPose(Axis.YP.rotationDegrees(180*sign));
+
+
+                            stack.mulPose(Axis.ZP.rotationDegrees(-20*sign));
+
+                        };
                     } else
                     {
+                        armPose = (stack, equip, swing, sign) -> {
 
+
+                            stack.translate(
+                                    sign * (0 + 0.64000005F),
+                                    (0 - 0.6F + equip * -0.6F),
+                                    (0 - 0.71999997F)
+                            );
+
+                            stack.translate(-0.60 * sign, -0.40f, -0.3f);
+
+                            stack.mulPose(Axis.YP.rotationDegrees(180 * sign));
+
+
+                            stack.mulPose(Axis.ZP.rotationDegrees(-30 * sign));
+                        };
                     }
+                    break;
                 }
+                // ram seal
+                case 3:
+                {
+                    if (arm == HumanoidArm.RIGHT)
+                    {
+                        armPose = (stack, equip, swing, sign) -> {
+
+
+                            stack.translate(
+                                    sign * (0 + 0.64000005F),
+                                    (0 - 0.6F + equip * -0.6F),
+                                    (0 - 0.71999997F)
+                            );
+
+                            stack.translate(-0.55,-0.55f,-0.4f);
+
+                            stack.mulPose(Axis.YP.rotationDegrees(180*sign));
+
+
+                            stack.mulPose(Axis.ZP.rotationDegrees(-30*sign));
+
+                        };
+                    } else
+                    {
+                        armPose = (stack, equip, swing, sign) -> {
+
+
+                            stack.translate(
+                                    sign * (0 + 0.64000005F),
+                                    (0 - 0.6F + equip * -0.6F),
+                                    (0 - 0.71999997F)
+                            );
+
+                            stack.translate(0.78, -0.40f, -0.4f);
+
+                            stack.mulPose(Axis.YP.rotationDegrees(180 * sign));
+
+
+                            stack.mulPose(Axis.ZP.rotationDegrees(-15 * sign));
+                        };
+                    }
+                    break;
+                }
+
             }
+            CustomArmRenderer.renderPlayerArm(poseStack, buffer, packedLight, 0, 0, arm, armPose);
+        }
+        else
+        {
+            CustomArmRenderer.renderPlayerArm(poseStack, buffer, packedLight, 0,0,arm);
         }
     }
 
     private static void renderPlayerArm(PoseStack poseStack, MultiBufferSource buffer, int packedLight, float equipProgress, float swingProgress, HumanoidArm p_109352_) {
-        Minecraft mc = Minecraft.getInstance();
-        boolean flag = p_109352_ != HumanoidArm.LEFT;
-        float f = flag ? 1.0F : -1.0F;
-        float f1 = Mth.sqrt(swingProgress);
-        float f2 = -0.3F * Mth.sin(f1 * (float)Math.PI);
-        float f3 = 0.4F * Mth.sin(f1 * ((float)Math.PI * 2F));
-        float f4 = -0.4F * Mth.sin(swingProgress * (float)Math.PI);
-        poseStack.translate(f * (f2 + 0.64000005F), f3 + -0.6F + equipProgress * -0.6F, f4 + -0.71999997F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(f * 45.0F));
-        float f5 = Mth.sin(swingProgress * swingProgress * (float)Math.PI);
-        float f6 = Mth.sin(f1 * (float)Math.PI);
-        poseStack.mulPose(Axis.YP.rotationDegrees(f * f6 * 70.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(f * f5 * -20.0F));
-        AbstractClientPlayer abstractclientplayer = mc.player;
-        RenderSystem.setShaderTexture(0, abstractclientplayer.getSkinTextureLocation());
-        poseStack.translate(f * -1.0F, 3.6F, 3.5F);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(f * 120.0F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(200.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(f * -135.0F));
-        poseStack.translate(f * 5.6F, 0.0F, 0.0F);
+//        Minecraft mc = Minecraft.getInstance();
+//        boolean flag = p_109352_ != HumanoidArm.LEFT;
+//        float f = flag ? 1.0F : -1.0F;
+//        float f1 = Mth.sqrt(swingProgress);
+//        float f2 = -0.3F * Mth.sin(f1 * (float)Math.PI);
+//        float f3 = 0.4F * Mth.sin(f1 * ((float)Math.PI * 2F));
+//        float f4 = -0.4F * Mth.sin(swingProgress * (float)Math.PI);
+//        poseStack.translate(f * (f2 + 0.64000005F), f3 + -0.6F + equipProgress * -0.6F, f4 + -0.71999997F);
+//        poseStack.mulPose(Axis.YP.rotationDegrees(f * 45.0F));
+//        float f5 = Mth.sin(swingProgress * swingProgress * (float)Math.PI);
+//        float f6 = Mth.sin(f1 * (float)Math.PI);
+//        poseStack.mulPose(Axis.YP.rotationDegrees(f * f6 * 70.0F));
+//        poseStack.mulPose(Axis.ZP.rotationDegrees(f * f5 * -20.0F));
+//        AbstractClientPlayer abstractclientplayer = mc.player;
+//        RenderSystem.setShaderTexture(0, abstractclientplayer.getSkinTextureLocation());
+//        poseStack.translate(f * -1.0F, 3.6F, 3.5F);
+//        poseStack.mulPose(Axis.ZP.rotationDegrees(f * 120.0F));
+//        poseStack.mulPose(Axis.XP.rotationDegrees(200.0F));
+//        poseStack.mulPose(Axis.YP.rotationDegrees(f * -135.0F));
+//        poseStack.translate(f * 5.6F, 0.0F, 0.0F);
+//
+//
+//
+//        PlayerRenderer playerrenderer = (PlayerRenderer)mc.getEntityRenderDispatcher().getRenderer(abstractclientplayer);
+//        if (flag) {
+//            poseStack.pushPose();
+//            transformHandSigns(poseStack, HumanoidArm.RIGHT);
+//            playerrenderer.renderRightHand(poseStack, buffer, packedLight, abstractclientplayer);
+//            poseStack.popPose();
+//        } else {
+//            poseStack.pushPose();
+//            transformHandSigns(poseStack, HumanoidArm.LEFT);
+//            playerrenderer.renderLeftHand(poseStack, buffer, packedLight, abstractclientplayer);
+//            poseStack.popPose();
+//        }
 
 
-
-        PlayerRenderer playerrenderer = (PlayerRenderer)mc.getEntityRenderDispatcher().getRenderer(abstractclientplayer);
-        if (flag) {
-            poseStack.pushPose();
-            transformHandSigns(poseStack, HumanoidArm.RIGHT);
-            playerrenderer.renderRightHand(poseStack, buffer, packedLight, abstractclientplayer);
-            poseStack.popPose();
-        } else {
-            poseStack.pushPose();
-            transformHandSigns(poseStack, HumanoidArm.LEFT);
-            playerrenderer.renderLeftHand(poseStack, buffer, packedLight, abstractclientplayer);
-            poseStack.popPose();
-        }
     }
 
     private static void RenderChakraBar(GuiGraphics guiGraphics)
