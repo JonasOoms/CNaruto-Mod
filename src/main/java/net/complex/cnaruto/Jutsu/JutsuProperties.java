@@ -3,6 +3,7 @@ package net.complex.cnaruto.Jutsu;
 import net.complex.cnaruto.Jutsu.JutsuResourceRequirements.IJutsuResourceRequirement;
 import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.IJutsuRequirement;
 import net.complex.cnaruto.SkillLines.SkillLine;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.IHandsign;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -14,10 +15,10 @@ public class JutsuProperties {
     private ResourceLocation icon;
     private Boolean hiddenIfNotUnlocked;
     private SkillLine belongsToSkillLine;
-    private int requiredHandsigns = 3;
 
     private ArrayList<IJutsuRequirement> jutsuRequirements = new ArrayList<>();
     private ArrayList<IJutsuResourceRequirement> jutsuResourceRequirements = new ArrayList<>();
+    private ArrayList<IHandsign> handsigns = new ArrayList<>();
     protected int cooldown = 1000;
 
     private JutsuProperties(Builder builder) {
@@ -26,9 +27,9 @@ public class JutsuProperties {
         this.icon = builder.icon;
         this.hiddenIfNotUnlocked = builder.hiddenIfNotUnlocked;
         this.belongsToSkillLine = builder.belongsToSkillLine;
-        this.requiredHandsigns = builder.requiredHandsigns;
         this.jutsuRequirements = (builder.jutsuRequirements);
         this.jutsuResourceRequirements = (builder.jutsuResourceRequirements);
+        this.handsigns = (builder.handsigns);
         this.cooldown = builder.cooldown;
     }
 
@@ -42,10 +43,12 @@ public class JutsuProperties {
     public ResourceLocation getIcon() { return icon; }
     public boolean isHiddenIfNotUnlocked() { return hiddenIfNotUnlocked; }
     public SkillLine getBelongsToSkillLine() { return belongsToSkillLine; }
-    public int getRequiredHandsigns() { return requiredHandsigns; }
+    public int getRequiredHandsigns() { return handsigns.size(); }
+    public ArrayList<IHandsign> getHandsigns() { return handsigns; }
     public ArrayList<IJutsuRequirement> getJutsuRequirements() { return jutsuRequirements; }
     public ArrayList<IJutsuResourceRequirement> getJutsuResourceRequirements() { return jutsuResourceRequirements; }
     public int getCooldown() { return cooldown; }
+
 
 
     public static class Builder {
@@ -54,9 +57,9 @@ public class JutsuProperties {
         private ResourceLocation icon;
         private boolean hiddenIfNotUnlocked = false;
         private final SkillLine belongsToSkillLine;
-        private int requiredHandsigns = 3;
         private ArrayList<IJutsuRequirement> jutsuRequirements = new ArrayList<>();
         private ArrayList<IJutsuResourceRequirement> jutsuResourceRequirements = new ArrayList<>();
+        private ArrayList<IHandsign> handsigns = new ArrayList<>();
         private int cooldown = 1000;
 
 
@@ -87,8 +90,8 @@ public class JutsuProperties {
             return this;
         }
 
-        public Builder requiredHandsigns(int handsigns) {
-            this.requiredHandsigns = handsigns;
+        public Builder addHandsign(IHandsign handsign) {
+            this.handsigns.add(handsign);
             return this;
         }
 

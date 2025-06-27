@@ -28,6 +28,12 @@ public class Keybindings {
             NARUTO_CATEGORY
     );
 
+    public final KeyMapping ChargeChakraKey = new KeyMapping(
+            "key." + CNaruto.MODID + ".chakracharge_key",
+            KeyConflictContext.IN_GAME,
+            InputConstants.getKey(InputConstants.KEY_C, -1),
+            NARUTO_CATEGORY
+    );
 
 
 }

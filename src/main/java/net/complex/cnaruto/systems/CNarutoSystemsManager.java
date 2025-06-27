@@ -1,12 +1,18 @@
 package net.complex.cnaruto.systems;
 
 import net.complex.cnaruto.CNaruto;
+import net.complex.cnaruto.systems.ChakraChargeManagerSubSystem.ChakraChargeManagerSubSystem;
 import net.complex.cnaruto.systems.ChakraControl.ChakraControlSubSystem;
 import net.complex.cnaruto.systems.JutsuSystem.JutsuSchedulerSubSystem;
+import net.complex.cnaruto.systems.ServerTimer.ServerTimerSubsystem;
 import net.complex.cnaruto.systems.StatSystem.PlayerStatSubsystem;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -14,13 +20,15 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(modid = CNaruto.MODID)
 public final class CNarutoSystemsManager {
 
-    private static CNarutoSystemsManager INSTANCE;
-    private ServerLevel level;
+    public static CNarutoSystemsManager INSTANCE;
+    private MinecraftServer server;
 
     // Systems
     private JutsuSchedulerSubSystem jutsuSchedulerSubSystem = null;
     private ChakraControlSubSystem chakraControlSubSystem = null;
     private PlayerStatSubsystem playerStatSubsystem = null;
+    private ChakraChargeManagerSubSystem chakraChargeManagerSubSystem = null;
+    private ServerTimerSubsystem serverTimerSubsystem = null;
 
     public static CNarutoSystemsManager getInstance()
     {
@@ -44,20 +52,28 @@ public final class CNarutoSystemsManager {
         return playerStatSubsystem;
     }
 
-    public CNarutoSystemsManager(ServerLevel level)
+    public ChakraChargeManagerSubSystem GetChakraChargeManagerSubSystem() {return chakraChargeManagerSubSystem;}
+
+    public ServerTimerSubsystem GetServerTimerSubSystem() {return serverTimerSubsystem;}
+
+
+    public CNarutoSystemsManager(MinecraftServer server)
     {
-        this.level = level;
+        this.server = server;
 
         IEventBus eventBus = MinecraftForge.EVENT_BUS;
 
         jutsuSchedulerSubSystem = new JutsuSchedulerSubSystem();
         chakraControlSubSystem = new ChakraControlSubSystem();
         playerStatSubsystem = new PlayerStatSubsystem();
+        chakraChargeManagerSubSystem = new ChakraChargeManagerSubSystem(server);
+        serverTimerSubsystem = new ServerTimerSubsystem();
 
         jutsuSchedulerSubSystem.Register(eventBus);
         chakraControlSubSystem.Register(eventBus);
         playerStatSubsystem.Register(eventBus);
-
+        chakraChargeManagerSubSystem.Register(eventBus);
+        serverTimerSubsystem.Register(eventBus);
 
         System.out.println("[CNARUTO]: CNarutoSystemsManager was loaded!");
     }
@@ -69,7 +85,7 @@ public final class CNarutoSystemsManager {
 
         if (INSTANCE == null)
         {
-            INSTANCE = new CNarutoSystemsManager(((ServerLevel) event.getLevel()).getLevel());
+            INSTANCE = new CNarutoSystemsManager(((ServerLevel) event.getLevel()).getServer());
         }
     }
 
@@ -83,6 +99,8 @@ public final class CNarutoSystemsManager {
             System.out.println("[CNARUTO]: CNarutoSystemsManager unloaded!");
         }
     }
+
+
 
 
 }

@@ -4,6 +4,7 @@ import net.complex.cnaruto.networking.ModMessages;
 import net.complex.cnaruto.networking.packet.s2c.ChakraManagerSyncWithClientS2CPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -18,12 +19,12 @@ public class ChakraManager {
 
     public int GetChakra() {return Chakra;}
     public void SetChakra(int chakra, Player player) {
-        this.Chakra = chakra;
-        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER)
-        {
+        this.Chakra = Mth.clamp(chakra, 0, GetMaxChakra(player));
+        if (!player.level().isClientSide() && player instanceof ServerPlayer server) {
+            // we’re on the logical server
             CompoundTag syncTag = new CompoundTag();
             this.serializeNBT(syncTag);
-            ModMessages.sendToPlayer(new ChakraManagerSyncWithClientS2CPacket(syncTag), (ServerPlayer) player);
+            ModMessages.sendToPlayer(new ChakraManagerSyncWithClientS2CPacket(syncTag), server);
         }
     }
 

@@ -1,6 +1,7 @@
 package net.complex.cnaruto.Jutsu;
 
 import net.complex.cnaruto.CNaruto;
+import net.complex.cnaruto.Jutsu.JutsuCategories.FireRelease.FireBallJutsu;
 import net.complex.cnaruto.Jutsu.JutsuCategories.WaterRelease.*;
 import net.complex.cnaruto.SkillLines.SkillLine;
 import net.minecraft.resources.ResourceLocation;
@@ -21,6 +22,7 @@ public class JutsuRegister {
 
     public static final RegistryObject<Jutsu> EXAMPLE_WATER_JUTSU = ExampleWaterJutsu.INSTANCE.Register( "example_water_jutsu" ,JUTSU_REGISTER);
 
+    public static final RegistryObject<Jutsu> FIREBALL_JUTSU = FireBallJutsu.INSTANCE.Register( "fireball_jutsu" ,JUTSU_REGISTER);
 
     public static void Register(IEventBus modbus)
     {

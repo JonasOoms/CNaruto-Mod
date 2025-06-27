@@ -5,13 +5,16 @@ import net.complex.cnaruto.CNaruto;
 import net.complex.cnaruto.Data.PlayerLevelStatsProvider;
 import net.complex.cnaruto.SkillLines.SkillLineData.SkillLineData;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
+import net.complex.cnaruto.api.CResources;
 import net.complex.cnaruto.api.CUtils;
 import net.complex.cnaruto.client.gui.widgets.OnPress.OpenSkillLineMenuForSkillLine;
 import net.complex.cnaruto.client.gui.widgets.OnPress.StatIncreaseThenSyncToServer;
 import net.complex.cnaruto.client.gui.widgets.SkillLineInformationFrame;
 import net.complex.cnaruto.client.gui.widgets.TexturableButton;
+import net.complex.cnaruto.client.rendering.CNarutoToolTips;
 import net.complex.cnaruto.networking.ModMessages;
 import net.complex.cnaruto.networking.packet.c2s.PlayerLevelStatsSyncRequestC2SPacket;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,11 +23,13 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.event.ScreenEvent;
 
 import java.awt.*;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -33,25 +38,25 @@ import java.util.Iterator;
 public class PlayerStatsMain extends Screen {
 
     private final Player player;
-    private final ResourceLocation background = new ResourceLocation(CNaruto.MODID, "textures/gui/scrollbackground.png");
-    private final ResourceLocation elementlabel = new ResourceLocation(CNaruto.MODID, "textures/gui/chakranature.png");
+    private static final ResourceLocation background = CResources.background;
+    private static final ResourceLocation elementlabel = CResources.elementlabel;
 
-    private final ResourceLocation plus = new ResourceLocation(CNaruto.MODID, "textures/gui/levelup.png");
-    private final ResourceLocation plusSelected = new ResourceLocation(CNaruto.MODID, "textures/gui/levelupselect.png");
+    private static final ResourceLocation plus = CResources.plus;
+    private static final ResourceLocation plusSelected = CResources.plusSelected;
 
-    private final ResourceLocation left = new ResourceLocation(CNaruto.MODID, "textures/gui/buttonleft.png");
-    private final ResourceLocation leftselected = new ResourceLocation(CNaruto.MODID, "textures/gui/buttonleftselect.png");
+    private static final ResourceLocation left = CResources.left;
+    private static final ResourceLocation leftselected = CResources.leftselected;
 
-    private final ResourceLocation right = new ResourceLocation(CNaruto.MODID, "textures/gui/buttonright.png");
-    private final ResourceLocation rightselected = new ResourceLocation(CNaruto.MODID, "textures/gui/buttonrightselect.png");
+    private static final ResourceLocation right = CResources.right;
+    private static final ResourceLocation rightselected = CResources.rightselected;
 
-    private final ResourceLocation LevelingFrame = new ResourceLocation(CNaruto.MODID, "textures/gui/levelingframe.png");
-    private final ResourceLocation LevelingBar = new ResourceLocation(CNaruto.MODID, "textures/gui/levelingbar.png");
+    private static final ResourceLocation LevelingFrame = CResources.levelingFrame;
+    private static final ResourceLocation LevelingBar = CResources.levelingBar;
 
     private TexturableButton SpiritButton;
     private TexturableButton DexterityButton;
-    private TexturableButton AgilityButton;
-    private TexturableButton NinjutsuButton;
+    private  TexturableButton AgilityButton;
+    private  TexturableButton NinjutsuButton;
 
     private TexturableButton TaijutsuButton;
     private TexturableButton KenjutsuButton;
@@ -245,7 +250,32 @@ public class PlayerStatsMain extends Screen {
         pGuiGraphics.drawString(SelectedFont, "Sealing Jutsu", posX + 80, posY + 172 , Color.BLACK.getRGB(), false);
         pGuiGraphics.drawString(SelectedFont, "Summoning Jutsu", posX + 80, posY + 184 , Color.BLACK.getRGB(), false);
 
-        pGuiGraphics.drawString(SelectedFont, "Talent Points", posX + 65, posY + 200 , Color.BLACK.getRGB(), false);
+        Component text = Component.literal("Talent Points")
+                .withStyle(ChatFormatting.BLUE)
+                .withStyle(ChatFormatting.BOLD);
+
+        FormattedCharSequence seq = text.getVisualOrderText();
+        int textWidth  = SelectedFont.width(seq);
+        int textHeight = SelectedFont.lineHeight;
+
+
+        int textX = posX + 65;
+        int textY = posY + 200;
+
+
+        boolean isHoveringText =
+                pMouseX >= textX &&
+                        pMouseX <= textX + textWidth &&
+                        pMouseY >= textY &&
+                        pMouseY <= textY + textHeight;
+
+        pGuiGraphics.drawString(SelectedFont, text ,
+                posX + 65, posY + 200 , Color.BLACK.getRGB(), false);
+
+        if (isHoveringText)
+        {
+            CNarutoToolTips.renderTalentPointsTooltip(pGuiGraphics, pMouseX, pMouseY);
+        }
 
         pGuiGraphics.blit(LevelingFrame, posX + 220, posY + 190, 0, 0, 128, 32, 128 , 32);
 
@@ -265,7 +295,7 @@ public class PlayerStatsMain extends Screen {
             pGuiGraphics.drawString(SelectedFont, Integer.toString(store.GetSealing()), posX + 170, posY + 172 , GetColorRGBBasedOnLevel(store.GetLevel()), false);
             pGuiGraphics.drawString(SelectedFont, Integer.toString(store.GetSummoning()), posX + 170, posY + 184 , GetColorRGBBasedOnLevel(store.GetLevel()), false);
 
-            pGuiGraphics.drawString(SelectedFont, Integer.toString(store.GetPoints()), posX + 135, posY + 200 , Color.black.getRGB(), false);
+            pGuiGraphics.drawString(SelectedFont, Integer.toString(store.GetPoints()), posX + 170, posY + 200 , Color.black.getRGB(), false);
             pGuiGraphics.blit(LevelingBar, posX + 220, posY + 190, 0, 0, (int) (128.f * store.GetXP()/store.GetMaxXP()), 32,  128, 32);
 
             pGuiGraphics.drawString(SelectedFont, Integer.toString(store.GetXP()) + "/" + Integer.toString(store.GetMaxXP()), posX + 270, posY + 202 , Color.BLUE.getRGB(), false);

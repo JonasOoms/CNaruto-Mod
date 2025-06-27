@@ -140,10 +140,10 @@ public class PlayerLevelStats {
         return false;
     }
 
-    private int Spirit = 0;
-    private int Dexterity = 0;
-    private int Agility = 0;
-    private int Ninjutsu = 0;
+    private int Spirit = 1;
+    private int Dexterity = 1;
+    private int Agility = 1;
+    private int Ninjutsu = 1;
 
     public int GetSpirit()
     {
@@ -190,11 +190,11 @@ public class PlayerLevelStats {
     }
 
     // For the basic Taijutsu, Kenjutsu, Medical ninjutsu, Sealing, Summoning skillines
-    private int Taijutsu = 0;
-    private int Kenjutsu = 0;
-    private int Medical = 0;
-    private int Sealing = 0;
-    private int Summoning = 0;
+    private int Taijutsu = 1;
+    private int Kenjutsu = 1;
+    private int Medical = 1;
+    private int Sealing = 1;
+    private int Summoning = 1;
 
     public int GetTaijutsu()
     {
@@ -337,6 +337,37 @@ public class PlayerLevelStats {
         return null;
     }
 
+    public SkillLineData GetPlayerSkillLineDataObject(SkillLine SkillLine)
+    {
+        SkillLineCategories Category = SkillLine.GetCategory();
+        RegistryObject<SkillLine> object = CUtils.FindAndReturnFromRegistry(SkillLineRegister.SKILL_LINE_REGISTER, SkillLine);
+        if (object == null) return null;
+
+        ArrayList<SkillLineData> ArrayListToSearch = null;
+
+        switch (Category)
+        {
+            case ELEMENT:
+                ArrayListToSearch = ElementReleases;
+                break;
+            case KEKKEI:
+                ArrayListToSearch = KekkeiReleases;
+                break;
+            case MISC:
+                ArrayListToSearch = OtherReleases;
+        }
+
+        for (int i = 0; i < ArrayListToSearch.size(); i++)
+        {
+            if (object.getId().getPath().equals(ArrayListToSearch.get(i).GetId()))
+            {
+                SkillLineData data = ArrayListToSearch.get(i);
+                return data;
+            }
+        }
+
+        return null;
+    }
 
 
     public boolean AddSkillLineToPlayer(RegistryObject<SkillLine> SkillLineRegistry)

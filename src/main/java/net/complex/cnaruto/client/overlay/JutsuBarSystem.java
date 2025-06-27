@@ -5,21 +5,24 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.complex.cnaruto.CNaruto;
 import net.complex.cnaruto.Config;
-import net.complex.cnaruto.Data.ChakraManager;
-import net.complex.cnaruto.Data.ChakraManagerProvider;
-import net.complex.cnaruto.Data.EquippedJutsu;
-import net.complex.cnaruto.Data.EquippedJutsuProvider;
+import net.complex.cnaruto.Data.*;
+import net.complex.cnaruto.Data.attributes.ModAttributes;
 import net.complex.cnaruto.Jutsu.Jutsu;
 import net.complex.cnaruto.Jutsu.JutsuInstance;
 import net.complex.cnaruto.api.CRenderUtils;
 import net.complex.cnaruto.client.keybinds.Keybindings;
 import net.complex.cnaruto.client.rendering.CustomArmRenderer.CustomArmRenderer;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.IHandsign;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.RamSealHandsign;
 import net.complex.cnaruto.networking.ModMessages;
+import net.complex.cnaruto.networking.packet.c2s.ChakraChargeManagerSystem.ChakraChargeManagerDeleteC2SPacket;
+import net.complex.cnaruto.networking.packet.c2s.ChakraChargeManagerSystem.ChakraChargeManagerPostC2SPacket;
 import net.complex.cnaruto.networking.packet.c2s.ChakraManagerSyncWithServerRequestC2S;
 import net.complex.cnaruto.networking.packet.c2s.EquippedJutsuSyncWithServerRequestC2S;
 import net.complex.cnaruto.networking.packet.c2s.JutsuSystem.HandSignSoundRequestC2S;
 import net.complex.cnaruto.networking.packet.c2s.JutsuSystem.JutsuSystemCastRequestC2S;
 import net.complex.cnaruto.sounds.ModSounds;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -53,6 +56,7 @@ public class JutsuBarSystem {
     private static boolean isOpen = false;
     private static boolean jutsuBarOpenDebounce = false;
     private static int selectedSlot = 0;
+    private static JutsuInstance selectedJutsu = null;
 
     // handsign and charging
     private static boolean isCharging = false;
@@ -60,16 +64,11 @@ public class JutsuBarSystem {
     private static int handsignCharge = 0;
     private static float handsignTimer = 0;
 
-    // handsign rendering
-    private static final ResourceLocation handsignTextures[] =
-            {
-                    new ResourceLocation(CNaruto.MODID, "textures/gui/handsigns/tiger.png"),
-                    new ResourceLocation(CNaruto.MODID, "textures/gui/handsigns/horse.png"),
-                    new ResourceLocation(CNaruto.MODID, "textures/gui/handsigns/rat.png"),
-                    new ResourceLocation(CNaruto.MODID, "textures/gui/handsigns/ram.png"),
-                    new ResourceLocation(CNaruto.MODID, "textures/gui/handsigns/snake.png"),
-                    new ResourceLocation(CNaruto.MODID, "textures/gui/handsigns/hare.png"),
-            };
+    private static IHandsign defaultHandsign = new RamSealHandsign();
+
+    // chakra charging
+    private static boolean isChakraCharging = false;
+
 
     public static void SyncResourcesRequest()
     {
@@ -98,6 +97,8 @@ public class JutsuBarSystem {
             }
 
             selectedSlot = clampSlot(selectedSlot);
+            selectedJutsu = EquippedJutsuProvider.get(Minecraft.getInstance().player).get(selectedSlot);
+
             isCharging = false;
 
         }
@@ -121,30 +122,24 @@ public class JutsuBarSystem {
         {
             e.setCanceled(true);
 
-            if (e.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT)
-            {
-                if (e.getAction() == GLFW.GLFW_PRESS)
-                {
-                    isCharging = true;
-                } else if (e.getAction() == GLFW.GLFW_RELEASE)
-                {
-                    // end jutsu charge and do jutsu check bs
-                    isCharging = false;
-                    handsignTimer = 0;
-                    handsignCharge = 0;
+            if (!isChakraCharging) {
+                if (e.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                    if (e.getAction() == GLFW.GLFW_PRESS) {
+                        isCharging = true;
+                    } else if (e.getAction() == GLFW.GLFW_RELEASE) {
+                        // end jutsu charge and do jutsu check bs
+                        isCharging = false;
+                        handsignTimer = 0;
+                        handsignCharge = 0;
 
-                    if (isJutsuReadyToCast)
-                    {
-                        isJutsuReadyToCast = false;
-                        CastJutsu();
+                        if (isJutsuReadyToCast) {
+                            isJutsuReadyToCast = false;
+                            CastJutsu();
+                        }
+
                     }
-
                 }
-
-
-
             }
-
         }
     }
 
@@ -158,6 +153,30 @@ public class JutsuBarSystem {
             {
                 //Minecraft.getInstance().player.playSound(ModSounds.JUTSU_ACTIVATION.get(), 1.0f, 1.0f);
                 ModMessages.SendToServer(new JutsuSystemCastRequestC2S(selectedSlot));
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void chakraChargeCheck(TickEvent.ClientTickEvent event) {
+        if (Minecraft.getInstance().player != null)
+        {
+            if (isChakraCharging)
+            {
+                {
+                    if (!Keybindings.NARUTO_KEYBINDINGS.ChargeChakraKey.isDown())
+                    {
+                        isChakraCharging = false;
+                        ModMessages.SendToServer(new ChakraChargeManagerDeleteC2SPacket(Minecraft.getInstance().player.getUUID()));
+                    }
+                }
+            } else
+            {
+                if (Keybindings.NARUTO_KEYBINDINGS.ChargeChakraKey.isDown() && isOpen && !isCharging)
+                {
+                    isChakraCharging = true;
+                    ModMessages.SendToServer(new ChakraChargeManagerPostC2SPacket(Minecraft.getInstance().player.getUUID()));
+                }
             }
         }
     }
@@ -189,6 +208,8 @@ public class JutsuBarSystem {
 
             }
 
+            selectedJutsu = EquippedJutsuProvider.get(Minecraft.getInstance().player).get(selectedSlot);
+
            ChargingClientTick(e);
         }
     }
@@ -201,7 +222,7 @@ public class JutsuBarSystem {
             isCharging = false;
         }
 
-        JutsuInstance instance = EquippedJutsuProvider.get(Minecraft.getInstance().player).get(selectedSlot);
+        JutsuInstance instance = selectedJutsu;
 
         if (isCharging) {
             if (instance != null) {
@@ -209,17 +230,21 @@ public class JutsuBarSystem {
                     Jutsu jutsu = instance.jutsu;
                     if (jutsu != null) {
 
-                        if (handsignCharge >= jutsu.GetHandSignRequirement()) {
+                        if (handsignCharge >= jutsu.GetHandSignRequirement() - 1) {
                             isJutsuReadyToCast = true;
                         } else {
 
                             // TODO: should become variable, change depending on a stat
-                            float timeBetweenHandsigns = 1.f * 20;
+
+
+                            assert Minecraft.getInstance().player != null;
+                            double timeBetweenHandsigns =  Minecraft.getInstance().player.getAttribute(ModAttributes.HANDSIGN_SPEED.get()).getValue() * 20;
+                            System.out.println(timeBetweenHandsigns);
                             handsignTimer += Minecraft.getInstance().getPartialTick();
 
 
                             if (handsignTimer >= timeBetweenHandsigns) {
-                                handsignTimer -= timeBetweenHandsigns;
+                                handsignTimer -= (float) timeBetweenHandsigns;
                                 handsignCharge += 1;
                                 Minecraft.getInstance().player.playSound(ModSounds.JUTSU_HAND_SIGN.get(), 1.0f, 1.0f);
                                 ModMessages.SendToServer(new HandSignSoundRequestC2S());
@@ -240,6 +265,8 @@ public class JutsuBarSystem {
     @SubscribeEvent
     public static void renderOverlay(RenderGuiOverlayEvent.Pre e)
     {
+        GuiGraphics guiGraphics = e.getGuiGraphics();
+        RenderChakraBar(guiGraphics);
         if (isOpen)
         {
             if (e.getOverlay() == VanillaGuiOverlay.PLAYER_HEALTH.type() ||
@@ -253,33 +280,51 @@ public class JutsuBarSystem {
 
             e.setCanceled(true);
 
-            GuiGraphics guiGraphics = e.getGuiGraphics();
-            PoseStack stack = e.getGuiGraphics().pose();
 
-            int screenWidth = e.getGuiGraphics().guiWidth();
-            int screenHeight = e.getGuiGraphics().guiHeight();
+            if (!isChakraCharging)
+            {
+                PoseStack stack = e.getGuiGraphics().pose();
 
-            int screenMiddle = screenWidth / 2;
+                int screenWidth = e.getGuiGraphics().guiWidth();
+                int screenHeight = e.getGuiGraphics().guiHeight();
+
+                int screenMiddle = screenWidth / 2;
 
 
-            drawJutsuSlot(selectedSlot, guiGraphics, screenMiddle - 10, screenHeight - 40, 20, 20, true);
-            guiGraphics.blit(emptyJutsuSlot, screenMiddle - 10, screenHeight - 40, 0, 0, 20, 20, 20, 20);
+                drawJutsuSlot(selectedSlot, guiGraphics, screenMiddle - 10, screenHeight - 40, 20, 20, true);
+                guiGraphics.blit(emptyJutsuSlot, screenMiddle - 10, screenHeight - 40, 0, 0, 20, 20, 20, 20);
 
-            // draw slot to the left
-            drawJutsuSlot(clampSlot(selectedSlot - 1), guiGraphics, screenMiddle - 10 - 22, screenHeight - 25, 16, 16, false);
-            // draw slot to the right
-            drawJutsuSlot(clampSlot(selectedSlot + 1), guiGraphics, screenMiddle - 10 + 25, screenHeight - 25, 16, 16, false);
+                // draw slot to the left
+                drawJutsuSlot(clampSlot(selectedSlot - 1), guiGraphics, screenMiddle - 10 - 22, screenHeight - 25, 16, 16, false);
+                // draw slot to the right
+                drawJutsuSlot(clampSlot(selectedSlot + 1), guiGraphics, screenMiddle - 10 + 25, screenHeight - 25, 16, 16, false);
 
-            RenderChakraBar(guiGraphics);
+            }
+
         } else if (e.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type())
             {
                 if (isCharging)
                 {
                     e.setCanceled(true);
-                    GuiGraphics guiGraphics = e.getGuiGraphics();
 
-                    int currentHandsign = handsignCharge % handsignTextures.length;
-                    ResourceLocation currentHandsignTexture = handsignTextures[currentHandsign];
+                    ResourceLocation currentHandsignTexture = defaultHandsign.GetHandsignIcon();
+                    if (selectedJutsu != null) {
+                        currentHandsignTexture = selectedJutsu.jutsu.GetHandSigns().get(handsignCharge).GetHandsignIcon();
+                    }
+
+
+                    int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2;
+                    int y = Minecraft.getInstance().getWindow().getGuiScaledHeight() / 2;
+
+                    RenderSystem.enableBlend();
+                    RenderSystem.setShaderColor(1f,1f,1f,0.5f);
+                    guiGraphics.blit(currentHandsignTexture, x - 16, y - 16, 0, 0, 0, 32, 32, 32, 32 );
+                    RenderSystem.setShaderColor(1f,1f,1f,1f);
+                } else if (isChakraCharging)
+                {
+                    e.setCanceled(true);
+
+                    ResourceLocation currentHandsignTexture = defaultHandsign.GetHandsignIcon();
 
                     int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2;
                     int y = Minecraft.getInstance().getWindow().getGuiScaledHeight() / 2;
@@ -294,6 +339,7 @@ public class JutsuBarSystem {
     }
     public static void drawJutsuSlot(int slot, GuiGraphics guiGraphics, int x, int y, int width, int height, boolean drawName)
     {
+        
         EquippedJutsu equippedJutsu = EquippedJutsuProvider.get(Minecraft.getInstance().player);
         JutsuInstance jutsuInstance = equippedJutsu.get(slot);
         if (jutsuInstance == null)
@@ -301,6 +347,7 @@ public class JutsuBarSystem {
             guiGraphics.blit(emptyJutsuSlot, x, y, 0,0, width, height,width,height);
             return;
         }
+
         Jutsu jutsu = jutsuInstance.jutsu;
         if (jutsu != null)
         {
@@ -332,9 +379,6 @@ public class JutsuBarSystem {
 
                 PoseStack stack = new PoseStack();
                 MultiBufferSource buffer = e.getMultiBufferSource();
-                float partialTicks = e.getPartialTick();
-
-                //stack.translate(0, 0f, -0.1f);
 
                 RenderHandSigns(stack, buffer, e.getPackedLight(), HumanoidArm.LEFT);
                 RenderHandSigns(stack, buffer, e.getPackedLight(), HumanoidArm.RIGHT);
@@ -348,187 +392,24 @@ public class JutsuBarSystem {
     {
         if (isCharging)
         {
-            CustomArmRenderer.ArmPose armPose = CustomArmRenderer.VANILLA_FIRST_PERSON;
-            switch (handsignCharge)
-            {
-                // Tiger seal
-                case 0: {
 
-                        armPose = (stack, equip, swing, sign) -> {
-
-
-                            stack.translate(
-                                    sign * (0 + 0.64000005F),
-                                    (0 - 0.6F + equip * -0.6F),
-                                    (0 - 0.71999997F)
-                            );
-
-                            stack.translate(-0.57*sign,-0.5f,-0.3f);
-
-                            stack.mulPose(Axis.YP.rotationDegrees(180*sign));
-
-
-                            stack.mulPose(Axis.ZP.rotationDegrees(-30*sign));
-
-                        };
-
-
-                    break;
-                }
-                // horse seal
-                case 1: {
-                    armPose = (stack, equip, swing, sign) -> {
-
-
-                        stack.translate(
-                                sign * (0 + 0.64000005F),
-                                (0 - 0.6F + equip * -0.6F),
-                                (0 - 0.71999997F)
-                        );
-
-                        stack.translate(-0.04*sign,-0.3f,0f);
-
-                        stack.mulPose(Axis.YP.rotationDegrees(270*sign));
-
-                        stack.mulPose(Axis.XP.rotationDegrees(50));
-
-                    };
-                    break;
-                }
-                // rat seal
-                case 2: {
-
-                    if (arm == HumanoidArm.LEFT)
-                    {
-                        armPose = (stack, equip, swing, sign) -> {
-
-
-                            stack.translate(
-                                    sign * (0 + 0.64000005F),
-                                    (0 - 0.6F + equip * -0.6F),
-                                    (0 - 0.71999997F)
-                            );
-
-                            stack.translate(-0.7*sign,-0.55f,-0.4f);
-
-                            stack.mulPose(Axis.YP.rotationDegrees(180*sign));
-
-
-                            stack.mulPose(Axis.ZP.rotationDegrees(-20*sign));
-
-                        };
-                    } else
-                    {
-                        armPose = (stack, equip, swing, sign) -> {
-
-
-                            stack.translate(
-                                    sign * (0 + 0.64000005F),
-                                    (0 - 0.6F + equip * -0.6F),
-                                    (0 - 0.71999997F)
-                            );
-
-                            stack.translate(-0.60 * sign, -0.40f, -0.3f);
-
-                            stack.mulPose(Axis.YP.rotationDegrees(180 * sign));
-
-
-                            stack.mulPose(Axis.ZP.rotationDegrees(-30 * sign));
-                        };
-                    }
-                    break;
-                }
-                // ram seal
-                case 3:
-                {
-                    if (arm == HumanoidArm.RIGHT)
-                    {
-                        armPose = (stack, equip, swing, sign) -> {
-
-
-                            stack.translate(
-                                    sign * (0 + 0.64000005F),
-                                    (0 - 0.6F + equip * -0.6F),
-                                    (0 - 0.71999997F)
-                            );
-
-                            stack.translate(-0.55,-0.55f,-0.4f);
-
-                            stack.mulPose(Axis.YP.rotationDegrees(180*sign));
-
-
-                            stack.mulPose(Axis.ZP.rotationDegrees(-30*sign));
-
-                        };
-                    } else
-                    {
-                        armPose = (stack, equip, swing, sign) -> {
-
-
-                            stack.translate(
-                                    sign * (0 + 0.64000005F),
-                                    (0 - 0.6F + equip * -0.6F),
-                                    (0 - 0.71999997F)
-                            );
-
-                            stack.translate(0.78, -0.40f, -0.4f);
-
-                            stack.mulPose(Axis.YP.rotationDegrees(180 * sign));
-
-
-                            stack.mulPose(Axis.ZP.rotationDegrees(-15 * sign));
-                        };
-                    }
-                    break;
-                }
-
+            IHandsign currentHandsign = defaultHandsign;
+            if (selectedJutsu != null) {
+                currentHandsign = selectedJutsu.jutsu.GetHandSigns().get(handsignCharge );
             }
-            CustomArmRenderer.renderPlayerArm(poseStack, buffer, packedLight, 0, 0, arm, armPose);
+
+            CustomArmRenderer.renderPlayerArm(poseStack, buffer, packedLight, 0, 0, arm, currentHandsign.GetHandsignArmPose(arm));
+
+        }
+        else if (isChakraCharging)
+        {
+            IHandsign currentHandsign = defaultHandsign;
+            CustomArmRenderer.renderPlayerArm(poseStack, buffer, packedLight, 0, 0, arm, currentHandsign.GetHandsignArmPose(arm));
         }
         else
         {
             CustomArmRenderer.renderPlayerArm(poseStack, buffer, packedLight, 0,0,arm);
         }
-    }
-
-    private static void renderPlayerArm(PoseStack poseStack, MultiBufferSource buffer, int packedLight, float equipProgress, float swingProgress, HumanoidArm p_109352_) {
-//        Minecraft mc = Minecraft.getInstance();
-//        boolean flag = p_109352_ != HumanoidArm.LEFT;
-//        float f = flag ? 1.0F : -1.0F;
-//        float f1 = Mth.sqrt(swingProgress);
-//        float f2 = -0.3F * Mth.sin(f1 * (float)Math.PI);
-//        float f3 = 0.4F * Mth.sin(f1 * ((float)Math.PI * 2F));
-//        float f4 = -0.4F * Mth.sin(swingProgress * (float)Math.PI);
-//        poseStack.translate(f * (f2 + 0.64000005F), f3 + -0.6F + equipProgress * -0.6F, f4 + -0.71999997F);
-//        poseStack.mulPose(Axis.YP.rotationDegrees(f * 45.0F));
-//        float f5 = Mth.sin(swingProgress * swingProgress * (float)Math.PI);
-//        float f6 = Mth.sin(f1 * (float)Math.PI);
-//        poseStack.mulPose(Axis.YP.rotationDegrees(f * f6 * 70.0F));
-//        poseStack.mulPose(Axis.ZP.rotationDegrees(f * f5 * -20.0F));
-//        AbstractClientPlayer abstractclientplayer = mc.player;
-//        RenderSystem.setShaderTexture(0, abstractclientplayer.getSkinTextureLocation());
-//        poseStack.translate(f * -1.0F, 3.6F, 3.5F);
-//        poseStack.mulPose(Axis.ZP.rotationDegrees(f * 120.0F));
-//        poseStack.mulPose(Axis.XP.rotationDegrees(200.0F));
-//        poseStack.mulPose(Axis.YP.rotationDegrees(f * -135.0F));
-//        poseStack.translate(f * 5.6F, 0.0F, 0.0F);
-//
-//
-//
-//        PlayerRenderer playerrenderer = (PlayerRenderer)mc.getEntityRenderDispatcher().getRenderer(abstractclientplayer);
-//        if (flag) {
-//            poseStack.pushPose();
-//            transformHandSigns(poseStack, HumanoidArm.RIGHT);
-//            playerrenderer.renderRightHand(poseStack, buffer, packedLight, abstractclientplayer);
-//            poseStack.popPose();
-//        } else {
-//            poseStack.pushPose();
-//            transformHandSigns(poseStack, HumanoidArm.LEFT);
-//            playerrenderer.renderLeftHand(poseStack, buffer, packedLight, abstractclientplayer);
-//            poseStack.popPose();
-//        }
-
-
     }
 
     private static void RenderChakraBar(GuiGraphics guiGraphics)

@@ -22,8 +22,8 @@ public class DojutsuBlindingRenderer {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
             Minecraft mc = Minecraft.getInstance();
 
-            //BlurShaderHandler.setBlurStrength(50);
-            //BlurShaderHandler.applyBlur();
+//            BlurShaderHandler.setBlurStrength(0);
+//            BlurShaderHandler.applyBlur();
 
             if (false) {
 

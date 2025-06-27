@@ -6,6 +6,7 @@ import net.complex.cnaruto.Jutsu.JutsuTask.JutsuCastData;
 import net.complex.cnaruto.Jutsu.JutsuTask.TaskResult;
 import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.IJutsuRequirement;
 import net.complex.cnaruto.SkillLines.SkillLine;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.IHandsign;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.registries.DeferredRegister;
@@ -77,6 +78,7 @@ public abstract class Jutsu {
         return jutsuProperties.getDescription();
     }
 
+
     public final int GetHandSignRequirement() {return jutsuProperties.getRequiredHandsigns();}
 
     public float GetCooldown() {return jutsuProperties.getCooldown();}
@@ -86,13 +88,19 @@ public abstract class Jutsu {
         return jutsuProperties.getIcon();
     }
 
-    public ImmutableList<IJutsuRequirement> GetJutsuRequirements() {
+    public final ImmutableList<IJutsuRequirement> GetJutsuRequirements() {
         return ImmutableList.copyOf(this.jutsuProperties.getJutsuRequirements());
     }
 
-    public ImmutableList<IJutsuResourceRequirement> GetJutsuResourceRequirements() {
+    public final ImmutableList<IJutsuResourceRequirement> GetJutsuResourceRequirements() {
         return ImmutableList.copyOf(this.jutsuProperties.getJutsuResourceRequirements());
     }
+
+    public final ImmutableList<IHandsign> GetHandSigns()
+    {
+        return ImmutableList.copyOf(this.jutsuProperties.getHandsigns());
+    }
+
     // Check if a player has enough to unlock this jutsu in the skill line menu
     public final boolean UnlockRequirements(Player player)
     {

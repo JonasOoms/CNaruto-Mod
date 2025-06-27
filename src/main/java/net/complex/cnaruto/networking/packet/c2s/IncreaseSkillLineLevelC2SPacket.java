@@ -32,7 +32,7 @@ public class IncreaseSkillLineLevelC2SPacket
 
     private CompoundTag nbt;
 
-    IncreaseSkillLineLevelC2SPacket(CompoundTag tag)
+    public IncreaseSkillLineLevelC2SPacket(CompoundTag tag)
     {
         this.nbt = tag;
     }
@@ -42,7 +42,7 @@ public class IncreaseSkillLineLevelC2SPacket
         this(CreatePacketCompatibleTag(skillLineData, levelToIncrease));
     }
 
-    IncreaseSkillLineLevelC2SPacket(FriendlyByteBuf buf)
+    public IncreaseSkillLineLevelC2SPacket(FriendlyByteBuf buf)
     {
         this(buf.readNbt());
     }

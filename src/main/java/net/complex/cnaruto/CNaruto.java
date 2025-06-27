@@ -1,41 +1,25 @@
 package net.complex.cnaruto;
 
-import com.mojang.logging.LogUtils;
+import net.complex.cnaruto.Data.attributes.ModAttributes;
 import net.complex.cnaruto.Items.ModItems;
 import net.complex.cnaruto.Jutsu.JutsuRegister;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
 import net.complex.cnaruto.command.Argument.CNarutoCommandsArguments;
+import net.complex.cnaruto.entities.ModEntities;
 import net.complex.cnaruto.networking.ModMessages;
-import net.complex.cnaruto.registries.NarutoRegistries;
 import net.complex.cnaruto.sounds.ModSounds;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
+import net.complex.cnaruto.systems.CNarutoSystemsManager;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
-import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(CNaruto.MODID)
@@ -80,6 +64,8 @@ public class CNaruto
         JutsuRegister.Register(modEventBus);
         ModItems.register(modEventBus);
         ModSounds.register(modEventBus);
+        ModAttributes.register(modEventBus);
+        ModEntities.register(modEventBus);
 
         CNarutoCommandsArguments.COMMAND_ARGUMENT_TYPES.register(modEventBus);
 
@@ -124,11 +110,7 @@ public class CNaruto
 //    }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(ServerStartingEvent event)
-    {
 
-    }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

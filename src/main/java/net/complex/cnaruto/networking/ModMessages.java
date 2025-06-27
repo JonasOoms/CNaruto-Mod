@@ -2,8 +2,12 @@ package net.complex.cnaruto.networking;
 
 import net.complex.cnaruto.CNaruto;
 import net.complex.cnaruto.networking.packet.c2s.*;
+import net.complex.cnaruto.networking.packet.c2s.ChakraChargeManagerSystem.ChakraChargeManagerDeleteC2SPacket;
+import net.complex.cnaruto.networking.packet.c2s.ChakraChargeManagerSystem.ChakraChargeManagerPostC2SPacket;
 import net.complex.cnaruto.networking.packet.c2s.JutsuSystem.HandSignSoundRequestC2S;
 import net.complex.cnaruto.networking.packet.c2s.JutsuSystem.JutsuSystemCastRequestC2S;
+import net.complex.cnaruto.networking.packet.s2c.ChakraChargeManagerSystem.ChakraChargeManagerDeleteS2CPacket;
+import net.complex.cnaruto.networking.packet.s2c.ChakraChargeManagerSystem.ChakraChargeManagerPostS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.ChakraManagerSyncWithClientS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.EquippedJutsuSyncWithClientS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.PlayerLevelStatsSyncS2CPacket;
@@ -92,6 +96,36 @@ public class ModMessages {
                 .decoder(HandSignSoundRequestC2S::new)
                 .encoder(HandSignSoundRequestC2S::toBytes)
                 .consumerMainThread(HandSignSoundRequestC2S::handle)
+                .add();
+
+        net.messageBuilder(IncreaseSkillLineLevelC2SPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(IncreaseSkillLineLevelC2SPacket::new)
+                .encoder(IncreaseSkillLineLevelC2SPacket::toBytes)
+                .consumerMainThread(IncreaseSkillLineLevelC2SPacket::handle)
+                .add();
+
+        net.messageBuilder(ChakraChargeManagerPostC2SPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(ChakraChargeManagerPostC2SPacket::new)
+                .encoder(ChakraChargeManagerPostC2SPacket::toBytes)
+                .consumerMainThread(ChakraChargeManagerPostC2SPacket::handle)
+                .add();
+
+        net.messageBuilder(ChakraChargeManagerDeleteC2SPacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(ChakraChargeManagerDeleteC2SPacket::new)
+                .encoder(ChakraChargeManagerDeleteC2SPacket::toBytes)
+                .consumerMainThread(ChakraChargeManagerDeleteC2SPacket::handle)
+                .add();
+
+        net.messageBuilder(ChakraChargeManagerPostS2CPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(ChakraChargeManagerPostS2CPacket::new)
+                .encoder(ChakraChargeManagerPostS2CPacket::toBytes)
+                .consumerMainThread(ChakraChargeManagerPostS2CPacket::handle)
+                .add();
+
+        net.messageBuilder(ChakraChargeManagerDeleteS2CPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(ChakraChargeManagerDeleteS2CPacket::new)
+                .encoder(ChakraChargeManagerDeleteS2CPacket::toBytes)
+                .consumerMainThread(ChakraChargeManagerDeleteS2CPacket::handle)
                 .add();
 
     }

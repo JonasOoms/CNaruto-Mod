@@ -9,6 +9,9 @@ import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.LevelJutsuUnlockRequire
 import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.SkillLineLevelUnlockRequirement;
 import net.complex.cnaruto.SkillLines.SkillLine;
 import net.complex.cnaruto.SkillLines.SkillLines.WaterReleaseSkillLine;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.HorseSealHandsign;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.RamSealHandsign;
+import net.complex.cnaruto.client.rendering.CustomArmRenderer.Handsigns.TigerSealHandsign;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -47,6 +50,9 @@ public class ExampleWaterJutsu extends Jutsu {
             .displayName("Water Style: Test Jutsu")
             .description("A test jutsu! This jutsu isn't really going to be used. So if you're somehow seeing this... that's bad!")
             .icon( new ResourceLocation(CNaruto.MODID, "textures/gui/waterrelease.png"))
+            .addHandsign(new RamSealHandsign())
+            .addHandsign(new HorseSealHandsign())
+            .addHandsign(new TigerSealHandsign())
             .build());
 
     public ExampleWaterJutsu(Supplier<JutsuProperties> properties) {

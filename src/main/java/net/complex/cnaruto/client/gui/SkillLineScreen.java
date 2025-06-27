@@ -1,5 +1,6 @@
 package net.complex.cnaruto.client.gui;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.complex.cnaruto.CNaruto;
 import net.complex.cnaruto.Data.PlayerLevelStats;
@@ -8,13 +9,18 @@ import net.complex.cnaruto.Jutsu.Jutsu;
 import net.complex.cnaruto.Jutsu.JutsuResourceRequirements.IJutsuResourceRequirement;
 import net.complex.cnaruto.Jutsu.JutsuUnlockRequirements.IJutsuRequirement;
 import net.complex.cnaruto.SkillLines.SkillLine;
+import net.complex.cnaruto.SkillLines.SkillLineData.SkillLineData;
 import net.complex.cnaruto.SkillLines.SkillLineRegister;
 import net.complex.cnaruto.api.CRenderUtils;
+import net.complex.cnaruto.api.CResources;
 import net.complex.cnaruto.api.CUtils;
 import net.complex.cnaruto.client.gui.widgets.JutsuBarWidget;
 import net.complex.cnaruto.client.gui.widgets.JutsuScrollList;
+import net.complex.cnaruto.client.gui.widgets.OnPress.SkillLineLevelIncreaseOnPress;
+import net.complex.cnaruto.client.gui.widgets.TexturableButton;
 import net.complex.cnaruto.client.gui.widgets.draggableWidget.DraggableWidget;
 import net.complex.cnaruto.client.gui.widgets.draggableWidget.DropZoneWidget;
+import net.complex.cnaruto.client.rendering.CNarutoToolTips;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -37,9 +43,15 @@ import java.util.function.Function;
 public class SkillLineScreen extends Screen {
 
     private SkillLine skillLine;
+    private SkillLineData skillLineData;
+    private PlayerLevelStats playerLevelStats;
+
     private List<Jutsu> jutsuList;
     private JutsuScrollList jutsuScrollList;
     private JutsuScrollList.JutsuEntry selected = null;
+
+    private TexturableButton skillLineIncrease;
+
     private DraggableWidget draggableWidget;
     private JutsuBarWidget jutsuBarWidget;
     private int listWidth;
@@ -47,14 +59,15 @@ public class SkillLineScreen extends Screen {
     int mouseX;
     int mouseY;
 
-    private final static ResourceLocation JutsuInformationBackground = new ResourceLocation(CNaruto.MODID, "textures/gui/scrollbackground.png");
+    private final static ResourceLocation JutsuInformationBackground = CResources.background;
     private final static ResourceLocation WoodBorder = new ResourceLocation("minecraft", "textures/block/oak_log.png");
 
     public SkillLineScreen(SkillLine SkillLine) {
         super(Component.empty());
         this.skillLine = SkillLine;
         this.jutsuList = SkillLine.GetJutsuAsList();
-
+        playerLevelStats = PlayerLevelStatsProvider.get(Minecraft.getInstance().player);
+        skillLineData = playerLevelStats.GetPlayerSkillLineDataObject(this.skillLine);
 
     }
 
@@ -77,8 +90,8 @@ public class SkillLineScreen extends Screen {
         draggableWidget.active = false;
         this.addRenderableWidget(this.draggableWidget);
 
-
-
+        skillLineIncrease = new TexturableButton(this.jutsuScrollList.getLeft() + this.jutsuScrollList.getWidth() - 18, 30 + 12, 12,12, new SkillLineLevelIncreaseOnPress(this.skillLineData, 1, Minecraft.getInstance().player), CResources.plus, CResources.plusSelected);
+        this.addRenderableWidget(skillLineIncrease);
 
         this.updateInfo();
     }
@@ -103,6 +116,8 @@ public class SkillLineScreen extends Screen {
         this.jutsuScrollList.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         this.jutsuBarWidget.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         drawSkillLineMastery(pGuiGraphics, this.jutsuScrollList.getLeft(), this.jutsuScrollList.getTop()-30, this.jutsuScrollList.getWidth(), 30, WoodBorder , JutsuScrollList.JutsuScrollListBackground);
+
+        this.skillLineIncrease.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
 
         if (selected != null)
         {
@@ -137,7 +152,6 @@ public class SkillLineScreen extends Screen {
                 int jutsuNaturalWidth = 250;
                 int jutsuNaturalHeight = 200;
 
-
                 int maxAllowedJutsuWidth = screenWidth - listWidth - listSpacing;
                 int maxAllowedJutsuHeight = screenHeight - 40; // Optional padding
 
@@ -166,9 +180,9 @@ public class SkillLineScreen extends Screen {
 
             RenderSystem.disableBlend();
             pGuiGraphics.drawString(font, jutsuDisplayName, jutsuInformationScrollX + 40, jutsuInformationScrollY + 32, Color.GRAY.hashCode());
-            drawWrappedText(pGuiGraphics, selected.GetJutsu().GetDescription(), jutsuInformationScrollX + 40, jutsuInformationScrollY + 50, 200, 100);
-            pGuiGraphics.drawString(font, "Requirements to equip:", (jutsuInformationScrollX) + 40, jutsuInformationScrollY + 78, Color.DARK_GRAY.hashCode());
-            drawRequirements(selected.GetJutsu(), pGuiGraphics, jutsuInformationScrollX + 40 , jutsuInformationScrollY + 88);
+            int descriptionHeight = drawWrappedText(pGuiGraphics, selected.GetJutsu().GetDescription(), jutsuInformationScrollX + 40, jutsuInformationScrollY + 50, 200, 100);
+            pGuiGraphics.drawString(font, "Requirements to equip:", (jutsuInformationScrollX) + 40, jutsuInformationScrollY + 60 + descriptionHeight, Color.DARK_GRAY.hashCode());
+            drawRequirements(selected.GetJutsu(), pGuiGraphics, jutsuInformationScrollX + 40 , jutsuInformationScrollY + 70 + descriptionHeight);
 
 
 
@@ -210,8 +224,6 @@ public class SkillLineScreen extends Screen {
         int thickness = 2;
 
         CRenderUtils.tileTexture(guiGraphics, borderTexture, x, y, width, height, 16);
-        // Inner box (fill)
-
 
         int innerX = x + thickness;
         int innerY = y + thickness;
@@ -229,8 +241,38 @@ public class SkillLineScreen extends Screen {
 
         guiGraphics.fill(barX, barY, barX + barWidth, barY + barHeight, new Color(38, 79, 142).hashCode());
 
-        PlayerLevelStats stats = PlayerLevelStatsProvider.get(Minecraft.getInstance().player);
-        int level = stats.GetPlayerLevelWithSkillLine(CUtils.FindAndReturnFromRegistry(SkillLineRegister.SKILL_LINE_REGISTER, this.skillLine));
+        int points = playerLevelStats.GetPoints();
+
+        Component pointsComponent = Component.literal(String.valueOf(points)).withStyle(ChatFormatting.GOLD).append(
+                Component.literal(" Talent Points").withStyle(ChatFormatting.BLUE).withStyle(ChatFormatting.BOLD)
+                );
+
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, pointsComponent
+                , barX + barWidth/2, barY - Minecraft.getInstance().font.lineHeight - 5, Color.GRAY.hashCode()
+        );
+
+        FormattedCharSequence seq = pointsComponent.getVisualOrderText();
+        int textWidth = font.width(seq);
+
+
+        int centerX = barX + barWidth / 2;
+        int textX    = centerX - textWidth / 2;
+        int textY    = barY - font.lineHeight - 5;
+
+
+        boolean isHoveringText = mouseX >= textX &&
+                        mouseX <= textX + textWidth &&
+                        mouseY >= textY &&
+                        mouseY <= textY + font.lineHeight;
+
+        if (isHoveringText)
+        {
+            CNarutoToolTips.renderTalentPointsTooltip(guiGraphics, mouseX, mouseY);
+        }
+
+
+
+        int level = playerLevelStats.GetPlayerLevelWithSkillLine(CUtils.FindAndReturnFromRegistry(SkillLineRegister.SKILL_LINE_REGISTER, this.skillLine));
         int maxLevel = this.skillLine.MaxLevel;
 
         float percentage = ((float) level /maxLevel);
@@ -256,7 +298,7 @@ public class SkillLineScreen extends Screen {
 
     }
 
-    private void drawWrappedText(GuiGraphics guiGraphics, String text, int x, int y, int width, int height)
+    private int drawWrappedText(GuiGraphics guiGraphics, String text, int x, int y, int width, int height)
     {
         Font font = Minecraft.getInstance().font;
         Component component = Component.literal(text);
@@ -264,10 +306,15 @@ public class SkillLineScreen extends Screen {
         int lineHeight = font.lineHeight;
         int maxLines = height/lineHeight;
 
+        int total = lines.size() * lineHeight;
+
         for (int i = 0; i < Math.min(lines.size(), maxLines); i++)
         {
             guiGraphics.drawString(font, lines.get(i), x, y + i * lineHeight, Color.WHITE.hashCode());
         }
+
+        return total;
+
     }
 
     private void drawRequirements(Jutsu jutsu, GuiGraphics guiGraphics, int x, int y)
