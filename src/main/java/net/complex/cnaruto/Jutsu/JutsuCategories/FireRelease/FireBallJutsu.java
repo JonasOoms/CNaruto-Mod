@@ -69,6 +69,8 @@ public class FireBallJutsu extends Jutsu {
                 fireball.setPos(start.x + dir.x, start.y + dir.y, start.z + dir.z);
                 world.addFreshEntity(fireball);
 
+                fireball.triggerAnim("pop_controller", "pop");
+
 
             }
 

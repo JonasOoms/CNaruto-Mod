@@ -1,8 +1,17 @@
 package net.complex.cnaruto.entities.jutsu_entities;
 
+import net.complex.cnaruto.Data.PlayerLevelStats;
+import net.complex.cnaruto.Data.PlayerLevelStatsProvider;
+import net.complex.cnaruto.SkillLines.SkillLineData.SkillLineData;
+import net.complex.cnaruto.SkillLines.SkillLineRegister;
+import net.complex.cnaruto.client.rendering.ExplosionHandler.CExplosionHandler;
+import net.complex.cnaruto.client.rendering.ExplosionHandler.CExplosions;
 import net.complex.cnaruto.entities.ModEntities;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -17,13 +26,22 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.awt.*;
 
 
+public class FireBallJutsuFireballProjectile extends AbstractHurtingProjectile implements GeoEntity {
 
-public class FireBallJutsuFireballProjectile extends AbstractHurtingProjectile {
+    private static final int EXPLOSION_POWER = 1;
 
-    private static final int EXPLOSION_POWER = 3;
-
+    private static final EntityDataAccessor<Float> POWER = SynchedEntityData.defineId(FireBallJutsuFireballProjectile.class, EntityDataSerializers.FLOAT);
 
     public FireBallJutsuFireballProjectile(EntityType<? extends FireBallJutsuFireballProjectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -33,10 +51,29 @@ public class FireBallJutsuFireballProjectile extends AbstractHurtingProjectile {
     public FireBallJutsuFireballProjectile(Level world, Player shooter, double dirX, double dirY, double dirZ)
     {
         super(ModEntities.FIREBALLJUTSU_FIREBALL.get(), world);
+        this.setOwner(shooter);
         setDeltaMovement(dirX, dirY, dirZ);
+    }
 
+    @Override
+    public void onAddedToWorld()
+    {
+        super.onAddedToWorld();
+        PlayerLevelStats stats = PlayerLevelStatsProvider.get((Player) getOwner());
+        SkillLineData data = stats.GetPlayerSkillLineDataObject(SkillLineRegister.FIRE_RELEASE);
 
+        SetPower(1 + (3 * ((float) data.GetLevel() /SkillLineRegister.FIRE_RELEASE.get().MaxLevel)));
+        this.refreshDimensions();
+    }
 
+    public float GetPower()
+    {
+        return this.entityData.get(POWER);
+    }
+
+    public void SetPower(float power)
+    {
+        this.entityData.set(POWER, power);
     }
 
     @Override
@@ -74,6 +111,12 @@ public class FireBallJutsuFireballProjectile extends AbstractHurtingProjectile {
     public boolean hurt(DamageSource pSource, float pAmount) {return false;}
 
     @Override
+    public EntityDimensions getDimensions(Pose pose)
+    {
+        return EntityDimensions.scalable(GetPower(),GetPower());
+    }
+
+    @Override
     protected void onHit(HitResult result) {
         if (level().isClientSide) {
             super.onHit(result);
@@ -81,23 +124,25 @@ public class FireBallJutsuFireballProjectile extends AbstractHurtingProjectile {
         }
 
         if (result.getType() == HitResult.Type.BLOCK) {
-            level().explode(this, getX(), getY(), getZ(),
-                    EXPLOSION_POWER,
+            Explosion explosion = this.level().explode(this, getX(), getY(), getZ(),
+                    EXPLOSION_POWER + GetPower(), true,
                     Level.ExplosionInteraction.MOB);
+
+
+            CExplosionHandler.SendExplosionEffect(CExplosions.DefaultExplosionEffect, explosion.getPosition(), GetPower() + 3 , Color.ORANGE, 20);
+
             this.discard();
-            System.out.println("Explode on block!");
             return;
         }
 
         if (result.getType() == HitResult.Type.ENTITY) {
 
-            level().explode(this, getX(), getY(), getZ(),
-                    EXPLOSION_POWER,
+            Explosion explosion = level().explode(this, getX(), getY(), getZ(),
+                    GetPower(),
+                    true,
                     Level.ExplosionInteraction.MOB);
+            CExplosionHandler.SendExplosionEffect(CExplosions.DefaultExplosionEffect, explosion.getPosition(), GetPower() + 3, Color.ORANGE, 20);
             this.discard();
-            System.out.println("Explode on entity!");
-            return;
-
         }
     }
 
@@ -131,6 +176,22 @@ public class FireBallJutsuFireballProjectile extends AbstractHurtingProjectile {
 
     @Override
     protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(POWER, 1.f);
+    }
 
+    protected static final RawAnimation POP_ANIM = RawAnimation.begin().then("animation.fireball.pop", Animation.LoopType.PLAY_ONCE);
+
+    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<FireBallJutsuFireballProjectile>(this, "pop_controller", state -> PlayState.STOP)
+                .triggerableAnim("pop", POP_ANIM));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.geoCache;
     }
 }

@@ -10,6 +10,7 @@ import net.complex.cnaruto.networking.packet.s2c.ChakraChargeManagerSystem.Chakr
 import net.complex.cnaruto.networking.packet.s2c.ChakraChargeManagerSystem.ChakraChargeManagerPostS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.ChakraManagerSyncWithClientS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.EquippedJutsuSyncWithClientS2CPacket;
+import net.complex.cnaruto.networking.packet.s2c.ExplosionEffects.SendExplosionEffectToClientS2CPacket;
 import net.complex.cnaruto.networking.packet.s2c.PlayerLevelStatsSyncS2CPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -127,6 +128,13 @@ public class ModMessages {
                 .encoder(ChakraChargeManagerDeleteS2CPacket::toBytes)
                 .consumerMainThread(ChakraChargeManagerDeleteS2CPacket::handle)
                 .add();
+
+        net.messageBuilder(SendExplosionEffectToClientS2CPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(SendExplosionEffectToClientS2CPacket::new)
+                .encoder(SendExplosionEffectToClientS2CPacket::toBytes)
+                .consumerMainThread(SendExplosionEffectToClientS2CPacket::handle)
+                .add();
+
 
     }
 

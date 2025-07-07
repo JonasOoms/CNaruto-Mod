@@ -10,6 +10,7 @@ import net.complex.cnaruto.events.eventtypes.LevelUpEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
@@ -23,10 +24,55 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
 
 
 @AutoRegisterCapability
 public class PlayerLevelStats {
+
+
+
+    public class LevelStatModifier
+    {
+
+        public enum Operation
+        {
+            ADDITION,
+            MULTIPLICATION
+        }
+
+        private final double modifier;
+        private final Operation operation;
+        private final UUID id;
+
+        LevelStatModifier(UUID id, double modifier, Operation operation)
+        {
+            this.id = id;
+            this.modifier = modifier;
+            this.operation = operation;
+        }
+
+        public double apply(double value)
+        {
+            return switch (operation) {
+                case ADDITION -> modifier + value;
+                case MULTIPLICATION -> modifier * value;
+            };
+        }
+
+        public double GetModifier() {
+            return modifier;
+        }
+
+        public Operation GetOperation() {
+            return operation;
+        }
+
+        public UUID GetId() {
+            return id;
+        }
+    }
 
     Player belongingPlayer;
 
@@ -141,9 +187,13 @@ public class PlayerLevelStats {
     }
 
     private int Spirit = 1;
+    private ArrayList<LevelStatModifier> SpiritModifiers = new ArrayList<>();
     private int Dexterity = 1;
+    private ArrayList<LevelStatModifier> DexterityModifiers = new ArrayList<>();
     private int Agility = 1;
+    private ArrayList<LevelStatModifier> AgilityModifiers = new ArrayList<>();
     private int Ninjutsu = 1;
+    private ArrayList<LevelStatModifier> NinjutsuModifiers = new ArrayList<>();
 
     public int GetSpirit()
     {
@@ -154,6 +204,15 @@ public class PlayerLevelStats {
     {
         this.Spirit = val;
     }
+
+    public void AddSpiritModifier(UUID id, double modifier, LevelStatModifier.Operation operation)
+    {
+        SpiritModifiers.add(
+                new LevelStatModifier(id, modifier, operation)
+        );
+    }
+    
+    //public void RemoveSpiritModifier(UUID )
 
     public int GetDexterity()
     {

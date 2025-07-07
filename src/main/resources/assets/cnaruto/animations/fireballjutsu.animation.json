@@ -1,0 +1,57 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.fireball.pop": {
+			"animation_length": 0.5,
+			"bones": {
+				"Ball": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 180]
+						},
+						"0.5": {
+							"vector": [0, 0, 0],
+							"easing": "easeOutExpo"
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [0.1, 0.1, 0.6]
+						},
+						"0.25": {
+							"vector": [0.3, 0.3, 1]
+						},
+						"0.5": {
+							"vector": [1, 1, 1],
+							"easing": "easeInQuad"
+						}
+					}
+				},
+				"Trail": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 180]
+						},
+						"0.5": {
+							"vector": [0, 0, 0],
+							"easing": "easeOutExpo"
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [0.1, 0.1, 0.6]
+						},
+						"0.25": {
+							"vector": [0.3, 0.3, 1]
+						},
+						"0.5": {
+							"vector": [1, 1, 1],
+							"easing": "easeInCubic"
+						}
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

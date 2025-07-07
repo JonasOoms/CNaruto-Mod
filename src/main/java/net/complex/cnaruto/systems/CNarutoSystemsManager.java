@@ -37,6 +37,11 @@ public final class CNarutoSystemsManager {
         return INSTANCE;
     }
 
+    public MinecraftServer GetServer()
+    {
+        return server;
+    }
+
     public JutsuSchedulerSubSystem GetJutsuSchedulerSubSystem()
     {
         return jutsuSchedulerSubSystem;

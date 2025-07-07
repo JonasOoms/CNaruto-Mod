@@ -17,15 +17,17 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
-@Mod.EventBusSubscriber(modid= CNaruto.MODID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-public class FireBallJutsuFireballRenderer extends EntityRenderer<FireBallJutsuFireballProjectile> {
 
-    private final FireballJutsuFireballModel<FireBallJutsuFireballProjectile> model;
+public class FireBallJutsuFireballRenderer extends GeoEntityRenderer<FireBallJutsuFireballProjectile> {
+
+    private final FireballJutsuFireballModel model;
 
     public FireBallJutsuFireballRenderer(EntityRendererProvider.Context pContext) {
-        super(pContext);
-        this.model = new FireballJutsuFireballModel<>(pContext.bakeLayer(FireballJutsuFireballModel.LAYER_LOCATION));
+        super(pContext, new FireballJutsuFireballModel());
+        this.model = new FireballJutsuFireballModel();
+
     }
 
     @Override
@@ -40,25 +42,16 @@ public class FireBallJutsuFireballRenderer extends EntityRenderer<FireBallJutsuF
 
         System.out.println(ent.getXRot());
 
-        pose.mulPose(Axis.YP.rotationDegrees(ent.getYRot() - 180));
-        pose.mulPose(Axis.XP.rotationDegrees(ent.getXRot()));
+        float power = ent.GetPower();
+        pose.scale(power,power,power);
+        pose.mulPose(Axis.YP.rotationDegrees(ent.getYRot()));
+        pose.mulPose(Axis.XP.rotationDegrees(-ent.getXRot()));
 
-        model.render(pose, buffers, light, OverlayTexture.NO_OVERLAY, 1,1,1,1);
+        super.render(ent, yaw, pt, pose, buffers, light);
+
         pose.popPose();
         //super.render(ent, yaw, pt, pose, buffers, light);
 
     }
 
-    @Override
-    public ResourceLocation getTextureLocation(FireBallJutsuFireballProjectile fireBallJutsuFireballProjectile) {
-        return null;
-    }
-
-    @SubscribeEvent
-    public static void onRegisterLayerDefs(EntityRenderersEvent.RegisterLayerDefinitions event) {
-        event.registerLayerDefinition(
-                FireballJutsuFireballModel.LAYER_LOCATION,
-                FireballJutsuFireballModel::createBodyLayer
-        );
-    }
 }
